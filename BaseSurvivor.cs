@@ -8,7 +8,6 @@ public abstract class BaseSurvivor : MonoBehaviour {
 	public int currentPos;
 	public float velocity = 3.0f;
 
-
 	public string name;
 
 	public int healthMax;
@@ -35,10 +34,13 @@ public abstract class BaseSurvivor : MonoBehaviour {
 	public enum PhysicalState
 	{
 		FINE,
-		INFECTED,
-		BLEEDING,
-		FEARED,
-		VIGOROUS
+		INFECT,
+		BLEED,
+		STUN,
+		FEAR, // DEBUFF
+		COUNTER,
+		BUFF,
+		MOVE
 	}
 
 	public enum PsychologicalState
@@ -75,6 +77,9 @@ public abstract class BaseSurvivor : MonoBehaviour {
 	// For ienumrator stuff
 	private bool actionStarted = false;
 
+
+	public GameObject thumbnailPrefab;
+
 	// Use this for initialization
 	protected virtual void Start () {
 		collider = this.GetComponent<BoxCollider2D> ();
@@ -82,6 +87,8 @@ public abstract class BaseSurvivor : MonoBehaviour {
 		animator = this.GetComponent<Animator>();
 		mainCamera = GameObject.FindGameObjectWithTag ("MainCamera");
 		gameManager = Manager.instance;
+
+		GameObject thumb = Instantiate (thumbnailPrefab, new Vector3 (-50f, -50f, 0f), Quaternion.identity);
 
 		physicalState = PhysicalState.FINE;
 		psychologicalState = PsychologicalState.IDLE;
