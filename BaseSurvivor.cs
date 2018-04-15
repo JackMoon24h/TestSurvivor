@@ -1,9 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using System;
 
 public abstract class BaseSurvivor : MonoBehaviour {
+	
+	public GameObject thumbnailPrefab;
+	[HideInInspector]public GameObject thumb;
 
 	public int currentPos;
 	public float velocity = 3.0f;
@@ -65,20 +69,19 @@ public abstract class BaseSurvivor : MonoBehaviour {
 	public TurnState turnState;
 
 
-	private BoxCollider2D collider;
+	[HideInInspector]public BoxCollider2D collider;
 	private Rigidbody2D rb2d;
 	private Animator animator;
 	private Manager gameManager;
 	private GameObject mainCamera;
-
 
 	public bool isActive = false;
 	public bool actedInTurn = false;
 	// For ienumrator stuff
 	private bool actionStarted = false;
 
-
-	public GameObject thumbnailPrefab;
+	public Button[] skillPrefabs = new Button[5];
+	public Button[] skillList = new Button[5];
 
 	// Use this for initialization
 	protected virtual void Start () {
@@ -88,10 +91,23 @@ public abstract class BaseSurvivor : MonoBehaviour {
 		mainCamera = GameObject.FindGameObjectWithTag ("MainCamera");
 		gameManager = Manager.instance;
 
-		GameObject thumb = Instantiate (thumbnailPrefab, new Vector3 (-50f, -50f, 0f), Quaternion.identity);
+		this.thumb = Instantiate (thumbnailPrefab, gameManager.thumbHidePos, Quaternion.identity);
+		thumb.transform.SetParent (this.gameObject.transform);
+		gameManager.cursor.transform.SetParent (this.gameObject.transform);
 
 		physicalState = PhysicalState.FINE;
 		psychologicalState = PsychologicalState.IDLE;
+
+		// Create skills
+		for(int i = 0; i < 5; i++){
+			var temp = Instantiate (skillPrefabs [i]);
+			temp.transform.SetParent (GameObject.Find ("Skill" + (i + 1)).transform);
+			//Set local Position to the parent
+			temp.transform.localPosition = new Vector3 (0f, 0f, 0f);
+			temp.gameObject.SetActive (false);
+			skillList.SetValue (temp, i);
+			temp.GetComponent<Skills> ().SetCaster (this);
+		}
 	}
 	
 	// Update is called once per frame
@@ -149,6 +165,16 @@ public abstract class BaseSurvivor : MonoBehaviour {
 			break;
 		}
 
+	}
+
+	public int GetPosition(BaseSurvivor survivor){
+		return survivor.currentPos;
+	}
+
+	public void OnClick(){
+		gameManager.statusWindow.UpdateWindow (this);
+		gameManager.MoveCursor (this);
+		gameManager.SetSkills (this);
 	}
 
 	protected virtual void SetActive(bool selection){

@@ -14,6 +14,14 @@ public class Manager : MonoBehaviour {
 
 	public static Manager instance = null;
 	public GameObject mainCamera;
+	// StatusWindow statusWindow means this variable will get a reference of "StatusWindow Script" to access StatusWindow Script and use functions
+
+	public GameObject cursorPrefab;
+	public GameObject targetCursorPrefab;
+	[HideInInspector]public GameObject cursor;
+	[HideInInspector]public StatusWindow statusWindow;
+	[HideInInspector]public Vector3 thumbPos = new Vector3 (-15f, -7.7f, 0f);
+	[HideInInspector]public Vector3 thumbHidePos = new Vector3 (-50f, -50f, 0f);
 
 	public float levelStartDelay = 2f;
 	public float turnDelay = 0.3f;
@@ -22,16 +30,6 @@ public class Manager : MonoBehaviour {
 
 	// For Initialization, it must be set before the game begins
 	public BaseSurvivor[] initialSurvivorList = new BaseSurvivor[4];
-
-//	public string survivorInPos1;
-//	public string survivorInPos2;
-//	public string survivorInPos3;
-//	public string survivorInPos4;
-
-//	public string enemyInPos1;
-//	public string enemyInPos2;
-//	public string enemyInPos3;
-//	public string enemyInPos4;
 
 	public enum TurnOrder
 	{
@@ -67,6 +65,7 @@ public class Manager : MonoBehaviour {
 		enemyStartPos4
 	};
 
+	public BaseSurvivor selectedSurvivor;
 	public BaseSurvivor activeSurvivor;
 	public BaseEnemy activeEnemy;
 
@@ -74,6 +73,13 @@ public class Manager : MonoBehaviour {
 	private GameObject levelImage;
 	private Text levelText;
 	private Text turnCounter;
+	public List<Button> activeCommands = new List<Button>();
+	// Skills.DrawTarget will use it
+	public List<GameObject> targetCursors = new List<GameObject>();
+	public List<BaseSurvivor> survivorTargetList = new List<BaseSurvivor>();
+	public List<BaseEnemy> enemyTargetList = new List<BaseEnemy>();
+
+
 
 	// Methods
 
@@ -116,9 +122,10 @@ public class Manager : MonoBehaviour {
 		levelText = GameObject.Find ("LevelText").GetComponent<Text> ();
 		levelText.text = "Day " + level;
 		levelImage.SetActive (true);
+		statusWindow = GameObject.Find ("StatusWindow").GetComponent<StatusWindow> ();
+		cursor = Instantiate (cursorPrefab, new Vector3(-50f, -50f, 0f), Quaternion.identity) as GameObject;
 
 		this.DeploySurvivors (initialSurvivorList);
-
 		Invoke ("HideLevelImage", levelStartDelay);
 	}
 
@@ -126,8 +133,10 @@ public class Manager : MonoBehaviour {
 		levelImage.SetActive (false);
 
 		this.EndUIShield ();
+		this.statusWindow.UpdateWindow (survivorList [0]);
+		this.MoveCursor (survivorList [0]);
+		this.SetSkills (survivorList [0]);
 	}
-
 
 	public void InitBattle(BaseEnemy[] initialEnemyList){
 		this.isBattle = true;
@@ -145,6 +154,7 @@ public class Manager : MonoBehaviour {
 		}
 	}
 
+
 	void DeploySurvivors(BaseSurvivor[] initialSurvivorList){
 		for(int i = 0; i < initialSurvivorList.Length; i++){
 			BaseSurvivor survivor = Instantiate (initialSurvivorList [i], survivorStartPositions [i] + mainCamera.transform.position, Quaternion.identity);
@@ -161,6 +171,36 @@ public class Manager : MonoBehaviour {
 			enemy.SetPosition (i + 1);
 		}
 	}
+
+	public void MoveCursor(BaseSurvivor selected){
+
+		if (this.selectedSurvivor){
+			this.selectedSurvivor.thumb.transform.position = this.thumbHidePos + new Vector3(mainCamera.transform.position.x, mainCamera.transform.position.y, 0f);
+			this.selectedSurvivor = null;
+		}
+			
+		this.selectedSurvivor = selected;
+		var pos = selected.GetPosition (selected);
+
+		if(this.selectedSurvivor == this.activeSurvivor)
+		{
+			cursor.transform.position = survivorStartPositions [pos - 1] + new Vector3(-0.8f, 3.2f, 0f) + new Vector3(mainCamera.transform.position.x, mainCamera.transform.position.y, 0f);
+		}
+		selected.thumb.transform.position = this.thumbPos + new Vector3(mainCamera.transform.position.x, mainCamera.transform.position.y, 0f);
+	}
+
+	public void SetSkills(BaseSurvivor selected){
+		for(int i = 0; i < activeCommands.Count; i++){
+			activeCommands [i].gameObject.SetActive (false);
+		}
+		activeCommands.Clear ();
+
+
+		activeCommands.AddRange (selected.skillList);
+		for(int i = 0; i < activeCommands.Count; i++){
+			activeCommands [i].gameObject.SetActive (true);
+		}
+	}
 		
 	void GetUnitList(){
 		GameObject[] surTemp = GameObject.FindGameObjectsWithTag ("Survivor");
@@ -169,7 +209,9 @@ public class Manager : MonoBehaviour {
 	}
 
 	void DecideTurn(){
-		int rand = Random.Range (1, 3);
+		// For test playing, set Random.Range(1,2) in order to create int 1 only
+//		int rand = Random.Range (1, 3);
+		int rand = Random.Range (1, 2);
 		if(rand == 1){
 			this.currentTurn = TurnOrder.SURVIVOR;
 			activeEnemy = null;
@@ -191,18 +233,18 @@ public class Manager : MonoBehaviour {
 		return this.GetEnemyInPos (rand);
 	}
 
+	public void PerformAction(){
+		Debug.Log ("Manager gave an order to units to play");
+	}
+
 
 	// StartTurn
 	void StartTurn(BaseSurvivor activeSurvivor){
 		this.EndUIShield ();
 
 		activeSurvivor.turnState = BaseSurvivor.TurnState.SELECTING;
-//		GameObject temp = allBattleUnitList [0];
-//		var tempScript = temp.GetComponent<BaseSurvivor> ();
-//		tempScript. ~~ I CAN ACCESS SCRIPT THROUGH GAMEOBJECT variables.......
-
-
-		Debug.Log ("Player's Turn");
+		this.MoveCursor (this.activeSurvivor);
+		this.SetSkills (this.activeSurvivor);
 	}
 
 	// EnemyStartTurn

@@ -45,11 +45,12 @@ public abstract class BaseEnemy : MonoBehaviour {
 
 	public PhysicalState physicalState;
 	public TurnState turnState;
+	public bool isTargeted = false;
 
 	public bool isActive = false;
 	public bool actedInTurn = false;
 
-	private BoxCollider2D collider;
+	[HideInInspector]public BoxCollider2D collider;
 	private Animator animator;
 	private Manager gameManager;
 	private GameObject mainCamera;
@@ -63,6 +64,17 @@ public abstract class BaseEnemy : MonoBehaviour {
 		mainCamera = GameObject.FindGameObjectWithTag ("MainCamera");
 
 		physicalState = PhysicalState.FINE;
+	}
+
+	public int GetPosition(BaseEnemy enemy){
+		return enemy.currentPos;
+	}
+
+	public void OnClickEnterEnemy(){
+		if(this.isTargeted)
+		{
+			gameManager.PerformAction ();
+		}
 	}
 	
 	// Update is called once per frame
