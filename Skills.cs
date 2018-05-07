@@ -62,6 +62,8 @@ public class Skills : MonoBehaviour {
 
 	public void DrawTarget(){
 
+		this.gameManager.confirmBtn.SetActive (false);
+
 		if (!gameManager.isBattle)
 			return;
 
@@ -88,6 +90,10 @@ public class Skills : MonoBehaviour {
 						// In order for instantiated cursor which uses animation to spawn at the right position, you must assign it to a gameobject. Unless you do that, the cursor will spawn always at the same position because of animation
 						gameManager.targetCursors.Add(Instantiate (gameManager.targetCursorPrefab, target.transform.position + new Vector3(0.25f, 3.75f, 0f), Quaternion.identity));
 						gameManager.enemyTargetList.Add (target);
+
+						this.caster.turnState = BaseSurvivor.TurnState.SELECTING;
+						this.gameManager.confirmBtn.SetActive (true);
+						this.gameManager.activeSkill = this;
 					}
 				}
 			}

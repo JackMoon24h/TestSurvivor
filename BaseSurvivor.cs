@@ -76,12 +76,15 @@ public abstract class BaseSurvivor : MonoBehaviour {
 	private GameObject mainCamera;
 
 	public bool isActive = false;
+	public bool wasActivePrev = false;
 	public bool actedInTurn = false;
-	// For ienumrator stuff
-	private bool actionStarted = false;
 
 	public Button[] skillPrefabs = new Button[5];
 	public Button[] skillList = new Button[5];
+
+	// On Stage
+	public Vector3 scaleOrigin = new Vector3(1f, 1f, 1f);
+	public Vector3 scaleOnStage = new Vector3(1.2f, 1.2f, 1f);
 
 	// Use this for initialization
 	protected virtual void Start () {
@@ -90,6 +93,7 @@ public abstract class BaseSurvivor : MonoBehaviour {
 		animator = this.GetComponent<Animator>();
 		mainCamera = GameObject.FindGameObjectWithTag ("MainCamera");
 		gameManager = Manager.instance;
+		scaleOnStage = this.transform.localScale;
 
 		this.thumb = Instantiate (thumbnailPrefab, gameManager.thumbHidePos, Quaternion.identity);
 		thumb.transform.SetParent (this.gameObject.transform);
@@ -150,7 +154,6 @@ public abstract class BaseSurvivor : MonoBehaviour {
 				break;
 			case TurnState.ACTING:
 				// Do actions defined in Ienumrator
-
 				StartCoroutine (TimeforAction ());
 
 				break;
@@ -186,36 +189,39 @@ public abstract class BaseSurvivor : MonoBehaviour {
 	}
 
 	private IEnumerator TimeforAction(){
-		if(actionStarted){
-			yield break;
+
+		while(MoveToStage()){
+			yield return null;
+		};
+
+//		Do damage
+		animator.SetTrigger ("skill_shoot");
+
+		yield return new WaitForSeconds(1f);
+
+//		Move back to start position
+		while(MoveBack()){
+			yield return null;
 		}
 
-//		actionStarted = true;
-//		Vector3 stagePosition = new Vector3 (0f,0f,0f);
-//		while(MoveToStage){
-//			yield return null;
-//		}
-		// Move to the action stage whith camera zooming
+		animator.ResetTrigger ("skill_shoot");
 
-		// Wait a bit if necessary
-//		yield return new WaitForSeconds(0.5f);
-		// Do damage
+//		Do Damage
 
-		// Move back to start position
+		yield return new WaitForSeconds(0.3f);
 
-		// Reset its turnState
-
-		actionStarted = false;
-		actedInTurn = true;
-		this.SetActive (false);
+//		Reset its turnState
+		this.turnState = BaseSurvivor.TurnState.WAITING;
 	}
 
-//	private bool MoveToStage(Vector3 position){
-//		return target != (this.transform.position = Vector3.MoveTowards (this.transform.position, position, animSpeed * Time.deltaTime));
-//	}
+	private bool MoveToStage(){
+		var targetPos = this.gameManager.survivorStagePos + mainCamera.transform.position;
+		return targetPos != (this.transform.position = Vector3.MoveTowards (this.transform.position, targetPos, 0.75f * Time.deltaTime));
+	}
 
-//	public void MovePosition(BaseSurvivor survivor, int startPosNum, int endPosNum){
-//		
-//	}
+	private bool MoveBack(){
+		var targetPos = this.gameManager.survivorStartPositions [this.currentPos - 1] + mainCamera.transform.position;
+		return targetPos != (this.transform.position = Vector3.MoveTowards (this.transform.position, targetPos, 0.25f * Time.deltaTime));
+	}
 
 }

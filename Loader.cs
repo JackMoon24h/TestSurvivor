@@ -5,6 +5,7 @@ using UnityEngine;
 public class Loader : MonoBehaviour {
 
 	public GameObject gameManager;
+	public GameObject statusWindow;
 
 	// Use this for initialization
 	void Awake () {

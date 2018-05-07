@@ -48,6 +48,7 @@ public abstract class BaseEnemy : MonoBehaviour {
 	public bool isTargeted = false;
 
 	public bool isActive = false;
+	public bool wasActivePrev = false;
 	public bool actedInTurn = false;
 
 	[HideInInspector]public BoxCollider2D collider;

@@ -22,6 +22,7 @@ public class Manager : MonoBehaviour {
 	[HideInInspector]public StatusWindow statusWindow;
 	[HideInInspector]public Vector3 thumbPos = new Vector3 (-15f, -7.7f, 0f);
 	[HideInInspector]public Vector3 thumbHidePos = new Vector3 (-50f, -50f, 0f);
+	[HideInInspector]public GameObject confirmBtn;
 
 	public float levelStartDelay = 2f;
 	public float turnDelay = 0.3f;
@@ -65,6 +66,8 @@ public class Manager : MonoBehaviour {
 		enemyStartPos4
 	};
 
+	public Vector3 survivorStagePos = new Vector3 (-2f, -1.5f, 10f);
+
 	public BaseSurvivor selectedSurvivor;
 	public BaseSurvivor activeSurvivor;
 	public BaseEnemy activeEnemy;
@@ -74,6 +77,7 @@ public class Manager : MonoBehaviour {
 	private Text levelText;
 	private Text turnCounter;
 	public List<Button> activeCommands = new List<Button>();
+	public Skills activeSkill;
 	// Skills.DrawTarget will use it
 	public List<GameObject> targetCursors = new List<GameObject>();
 	public List<BaseSurvivor> survivorTargetList = new List<BaseSurvivor>();
@@ -124,6 +128,8 @@ public class Manager : MonoBehaviour {
 		levelImage.SetActive (true);
 		statusWindow = GameObject.Find ("StatusWindow").GetComponent<StatusWindow> ();
 		cursor = Instantiate (cursorPrefab, new Vector3(-50f, -50f, 0f), Quaternion.identity) as GameObject;
+		confirmBtn = GameObject.Find ("ConfirmBtn");
+		confirmBtn.SetActive (false);
 
 		this.DeploySurvivors (initialSurvivorList);
 		Invoke ("HideLevelImage", levelStartDelay);
