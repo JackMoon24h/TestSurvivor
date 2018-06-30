@@ -10,7 +10,6 @@ public class SquadManager : MonoBehaviour
     [HideInInspector]public SquadPositions squadPositions;
     [HideInInspector]public Camera mainCamera;
 
-
     public Vector3 squadStartPos = new Vector3(0f, 0f, 0f);
 	
 	void Awake () 
@@ -35,9 +34,9 @@ public class SquadManager : MonoBehaviour
     void Update () 
     {
         // Get touch input and direction;
-        squadInput.GetTouhInput();
+        squadInput.GetTouchInput();
 
-        if(!gameManager.IsBattle && squadInput.inputDetected)
+        if(!gameManager.IsBattle && squadInput.moveInputDetected)
         {
             if(squadInput.Direction > 0)
             {

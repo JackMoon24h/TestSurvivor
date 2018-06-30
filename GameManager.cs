@@ -27,6 +27,10 @@ public class GameManager : MonoBehaviour
 
     public float delay = 2.5f;
 
+    public GameObject clickedObject;
+    public GameObject activeUnit;
+
+
     public UnityEvent startLevelEvent;
     public UnityEvent playLevelEvent;
     public UnityEvent battleEvent;
@@ -102,7 +106,9 @@ public class GameManager : MonoBehaviour
 
     IEnumerator BattleLevelRoutine()
     {
-        Debug.Log("Battle Routine Worked!");
+        Debug.Log("Battle Routine Started!");
+
+        squadManager.squadInput.InputEnabled = false;
 
         if(battleEvent != null)
         {
@@ -110,7 +116,10 @@ public class GameManager : MonoBehaviour
             battleEvent.Invoke();
         }
 
-        yield return new WaitForSeconds(delay);
+        // Show Battle Animation for seconds
+        yield return new WaitForSeconds(2f);
+
+        squadManager.squadInput.InputEnabled = true;
 
         // Until something sets m_isBattle true, wait.
         while(m_isBattle)
@@ -180,14 +189,26 @@ public class GameManager : MonoBehaviour
         Debug.Log("BATTLE LEVEL");
         m_isBattle = true;
         squadManager.squadMover.Stop();
-        squadManager.squadInput.InputEnabled = false;
 
         StartCoroutine("BattleLevelRoutine");
+    }
+
+    // This will be called by SquadInput
+    public GameObject GetClickedObject(Collider2D col)
+    {
+        Debug.Log("Clicked " + col.gameObject.name);
+        return col.gameObject;
     }
 
     // For Test Purpose
     public void TestButton()
     {
+        StartCoroutine(TestRoutine());
+    }
+
+    IEnumerator TestRoutine()
+    {
+        yield return new WaitForSeconds(2f);
         m_isBattle = false;
     }
 

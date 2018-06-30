@@ -4,27 +4,31 @@ using UnityEngine;
 
 public class Positions : MonoBehaviour 
 {
-    public int position;
+    public int number;
     public BoxCollider2D positionCollider;
     public GameObject positionedUnit;
+    public Character character;
 
 
 	// Use this for initialization
 	void Start () 
     {
         positionCollider = GetComponent<BoxCollider2D>();
-        positionedUnit = this.transform.GetChild(position - 1).gameObject;
 	}
 	
-	// Update is called once per frame
-	void Update () 
+    public void GetPositionedUnit()
     {
-		
-	}
+        positionedUnit = this.gameObject.transform.GetChild(0).gameObject;
+        if(positionedUnit != null)
+        {
+            character = positionedUnit.GetComponent<Character>();
+        }
+    }
 
+    // If this.collider is clicked
     void OnClick()
     {
-        // If it is in the battle, Start Coroutine
+        // If it is in the middle of battle, Start Coroutine
 
         // Get positioned units's information
 
@@ -32,9 +36,15 @@ public class Positions : MonoBehaviour
 
         // Select a Skill to use
 
-        // Select targets
+        // If the unit positioned is active
 
-        // Skill Animations
+        // Draw targets
+
+        // Confirm order
+
+        // Skill animations
 
     }
+
+
 }

@@ -53,7 +53,7 @@ public class SquadMover : MonoBehaviour
 
         while(Vector3.Distance(destinationPos, this.transform.position) > 0.1f)
         {
-            squadManager.squadInput.InputEnabled = false;
+            
             yield return null;
         }
 
@@ -74,6 +74,7 @@ public class SquadMover : MonoBehaviour
     public void Stop()
     {
         iTween.Stop(gameObject);
+        squadManager.squadInput.moveInputDetected = false;
         isMoving = false;
     }
 

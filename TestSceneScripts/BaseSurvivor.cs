@@ -216,7 +216,7 @@ public abstract class BaseSurvivor : MonoBehaviour {
 
 	private bool MoveToStage(){
 		var targetPos = this.gameManager.survivorStagePos + mainCamera.transform.position;
-		return targetPos != (this.transform.position = Vector3.MoveTowards (this.transform.position, targetPos, 0.75f * Time.deltaTime));
+		return targetPos != (this.transform.position = Vector3.MoveTowards (this.transform.position, targetPos, 1f * Time.deltaTime));
 	}
 
 	private bool MoveBack(){

@@ -9,11 +9,9 @@ public class SquadPositions : MonoBehaviour
     public GameObject[] unitPrefabs = new GameObject[4];
     public List<GameObject> positions = new List<GameObject>();
 
-    public GameObject playerSquad;
-
     private void Start()
     {
-
+        
     }
 
 	
