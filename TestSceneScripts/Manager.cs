@@ -19,7 +19,7 @@ public class Manager : MonoBehaviour {
 	public GameObject cursorPrefab;
 	public GameObject targetCursorPrefab;
 	[HideInInspector]public GameObject cursor;
-	[HideInInspector]public StatusWindow statusWindow;
+	
 	[HideInInspector]public Vector3 thumbPos = new Vector3 (-15f, -7.7f, 0f);
 	[HideInInspector]public Vector3 thumbHidePos = new Vector3 (-50f, -50f, 0f);
 	[HideInInspector]public GameObject confirmBtn;
@@ -126,7 +126,7 @@ public class Manager : MonoBehaviour {
 		levelText = GameObject.Find ("LevelText").GetComponent<Text> ();
 		levelText.text = "Day " + level;
 		levelImage.SetActive (true);
-		statusWindow = GameObject.Find ("StatusWindow").GetComponent<StatusWindow> ();
+		//statusWindow = GameObject.Find ("StatusWindow").GetComponent<StatusWindow> ();
 		cursor = Instantiate (cursorPrefab, new Vector3(-50f, -50f, 0f), Quaternion.identity) as GameObject;
 		confirmBtn = GameObject.Find ("ConfirmBtn");
 		confirmBtn.SetActive (false);
@@ -139,7 +139,7 @@ public class Manager : MonoBehaviour {
 		levelImage.SetActive (false);
 
 		this.EndUIShield ();
-		this.statusWindow.UpdateWindow (survivorList [0]);
+		//this.statusWindow.UpdateWindow (survivorList [0]);
 		this.MoveCursor (survivorList [0]);
 		this.SetSkills (survivorList [0]);
 	}

@@ -32,7 +32,10 @@ public class Character : MonoBehaviour
     public PsychologicalState psychologicalState = PsychologicalState.Idle;
     public int currentPosition;
 
-    // Basic Character's Paramters
+    public BoxCollider2D col;
+
+
+    // Parameters
     string m_name;
     public string Name { get { return m_name; } }
 
@@ -95,7 +98,7 @@ public class Character : MonoBehaviour
     // Use this for initialization
     void Start () 
     {
-		
+        col = this.GetComponent<BoxCollider2D>();
 	}
 	
 	// Update is called once per frame
@@ -103,4 +106,26 @@ public class Character : MonoBehaviour
     {
 		
 	}
+
+    void OnClick()
+    {
+        // If it is not in the middle of battle, it updates the Status Window
+
+        // If it is in the middle of battle, Start Coroutine
+
+        // Get positioned units's information
+
+        // Show the information on command panel
+
+        // Select a Skill to use
+
+        // If the unit positioned is active
+
+        // Draw targets
+
+        // Confirm order
+
+        // Skill animations
+
+    }
 }

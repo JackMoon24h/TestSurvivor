@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 // Controls characters's positions in squad
 
@@ -8,6 +9,7 @@ public class SquadPositions : MonoBehaviour
 {
     public GameObject[] unitPrefabs = new GameObject[4];
     public List<GameObject> positions = new List<GameObject>();
+    public List<Character> survivorList = new List<Character>();
 
     private void Start()
     {
@@ -32,5 +34,10 @@ public class SquadPositions : MonoBehaviour
                 child.transform.localPosition = Vector3.zero;
             }
         }
+    }
+
+    public void UpdateSurvivorList()
+    {
+        survivorList = (Object.FindObjectsOfType<Character>() as Character[]).ToList();
     }
 }

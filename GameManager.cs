@@ -27,9 +27,6 @@ public class GameManager : MonoBehaviour
 
     public float delay = 2.5f;
 
-    public GameObject clickedObject;
-    public GameObject activeUnit;
-
 
     public UnityEvent startLevelEvent;
     public UnityEvent playLevelEvent;
@@ -177,7 +174,7 @@ public class GameManager : MonoBehaviour
     {
         if(goal != null)
         {
-            return goal.isClicked;
+            return goal.isActive;
         }
         Debug.LogWarning("Warning : Goal has not been set! ====================");
         return false;
@@ -194,10 +191,43 @@ public class GameManager : MonoBehaviour
     }
 
     // This will be called by SquadInput
-    public GameObject GetClickedObject(Collider2D col)
+    public void GetClickedObject(Collider2D col)
     {
         Debug.Log("Clicked " + col.gameObject.name);
-        return col.gameObject;
+
+        switch (col.gameObject.tag)
+        {
+            case "Survivor":
+
+                // if it is not in the battle
+                if(!m_isBattle)
+                {
+                    squadManager.UpdateActiveUnit();
+                }
+                // Change active unit and Update status window
+
+                // if it is in the middle of battle, check if the clicked unit is active unit
+
+
+
+                break;
+
+            case "Enemy":
+                
+                break;
+
+            case "Skill":
+                // If skill has button component, maybe this is not necessary
+                break;
+
+            case "Object":
+                
+                // Get active unit
+
+                // Start coroutine to pick up the object
+
+                break;
+        }
     }
 
     // For Test Purpose

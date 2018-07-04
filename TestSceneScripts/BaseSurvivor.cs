@@ -175,7 +175,7 @@ public abstract class BaseSurvivor : MonoBehaviour {
 	}
 
 	public void OnClick(){
-		gameManager.statusWindow.UpdateWindow (this);
+		//gameManager.statusWindow.UpdateWindow (this);
 		gameManager.MoveCursor (this);
 		gameManager.SetSkills (this);
 	}

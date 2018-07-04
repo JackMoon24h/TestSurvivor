@@ -19,10 +19,12 @@ public class SquadInput : MonoBehaviour
     Vector3 backward = new Vector3(-3f, 0f, 0f);
 
     GameManager gameManager;
+    SquadManager squadManager;
 
     private void Start()
     {
         gameManager = Object.FindObjectOfType<GameManager>().GetComponent<GameManager>();
+        squadManager = GetComponent<SquadManager>();
     }
 
     // Sense input and direction
@@ -39,7 +41,6 @@ public class SquadInput : MonoBehaviour
                 // If player clicks an object
                 if(hit.collider != null)
                 {
-                    // Let gameManager what the clicked object is
                     gameManager.GetClickedObject(hit.collider);
                 }
                 else // If player tries to move

@@ -6,23 +6,19 @@ using UnityEngine;
 public class ObjectTrigger : MonoBehaviour 
 {
     BoxCollider2D col;
-    string objectName;
 
-    public bool isTouchEnabled = false;
-    public bool isClicked = false;
+    public bool isActive = false;
 
 
 	// Use this for initialization
 	void Start () 
     {
         col = GetComponent<BoxCollider2D>();
-        objectName = this.gameObject.name;
 	}
 	
     void OnTriggerEnter2D (Collider2D other) 
     {
-        isTouchEnabled = true;
-        isClicked = true;
+        isActive = true;
         Debug.Log("HIT!!!!!");
 	}
 

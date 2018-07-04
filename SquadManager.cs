@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SquadManager : MonoBehaviour 
 {
@@ -11,6 +12,9 @@ public class SquadManager : MonoBehaviour
     [HideInInspector]public Camera mainCamera;
 
     public Vector3 squadStartPos = new Vector3(0f, 0f, 0f);
+
+    public MainPanel mainPanel;
+    public Character activeUnit;
 	
 	void Awake () 
     {
@@ -20,6 +24,7 @@ public class SquadManager : MonoBehaviour
         squadPositions = this.GetComponent<SquadPositions>();
         mainCamera = Camera.main;
 
+        mainPanel = GameObject.Find("MainPanel").GetComponent<MainPanel>();
 
         this.transform.position = squadStartPos;
         squadInput.InputEnabled = true;
@@ -47,6 +52,11 @@ public class SquadManager : MonoBehaviour
                 squadMover.MoveBackWard();
             }
         }
-
 	}
+
+
+    public void UpdateActiveUnit()
+    {
+        
+    }
 }

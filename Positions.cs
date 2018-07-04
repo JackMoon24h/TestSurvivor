@@ -5,7 +5,6 @@ using UnityEngine;
 public class Positions : MonoBehaviour 
 {
     public int number;
-    public BoxCollider2D positionCollider;
     public GameObject positionedUnit;
     public Character character;
 
@@ -13,7 +12,7 @@ public class Positions : MonoBehaviour
 	// Use this for initialization
 	void Start () 
     {
-        positionCollider = GetComponent<BoxCollider2D>();
+        
 	}
 	
     public void GetPositionedUnit()
