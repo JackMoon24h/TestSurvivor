@@ -254,6 +254,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void DeployEnemySquad()
+    {
+        
+    }
+
     // For Test Purpose
     public void TestButton()
     {

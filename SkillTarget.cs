@@ -20,9 +20,9 @@ public class SkillTarget : MonoBehaviour
         FIXED
     }
 
-    public bool[] selectableRange = new bool[4];
-    public bool[] fixedRange = new bool[4];
     public bool[] availablePos = new bool[4];
+    public bool[] targetRange = new bool[4];
+
 
     private void Start()
     {
@@ -31,9 +31,26 @@ public class SkillTarget : MonoBehaviour
 
     public void DrawTarget()
     {
-        // Check the character's currentPosition. If character is positioned at availablePos
+        if(CanCast())
+        {
+            // Show Cursor to target base on the Target enum
 
-        // Check it's Target
+        }
+
+        // Go to next step : wait for comfirm action
     }
 
+    // Check the character's currentPosition if character can cast the selected skill
+    public bool CanCast()
+    {
+        for (int i = 0; i < availablePos.Length; i++)
+        {
+            if (availablePos[character.currentPosition - 1])
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

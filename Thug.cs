@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Thug : Character 
+public class Thug : Character
 {
     
 	// Use this for initialization
@@ -20,6 +20,7 @@ public class Thug : Character
 
     void SetParameter()
     {
+        this.Level = 1;
         this.Name = "Pavle";
         this.job = Job.Thug;
         this.MaxHealth = 30f;

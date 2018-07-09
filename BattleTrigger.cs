@@ -8,7 +8,7 @@ public class BattleTrigger : MonoBehaviour
 
     public GameManager gameManager;
 
-    public GameObject[] enemyPrefabs = new GameObject[4];
+    public 
 
 	// Use this for initialization
 	void Start () 

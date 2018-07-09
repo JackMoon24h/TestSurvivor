@@ -74,8 +74,7 @@ public class MainPanel : MonoBehaviour
     // Create character's thumb, skill images which will be displayed in the panel
     public void CreateImage(Character target)
     {
-        var thumbImage = Instantiate(target.thumbPrefab, Vector3.zero, Quaternion.identity).GetComponent<SpriteRenderer>().sprite;
-        thumb.sprite = thumbImage;
+        thumb.sprite = target.thumbImage;
         skill1.sprite = target.skill1;
         skill2.sprite = target.skill2;
         skill3.sprite = target.skill3;

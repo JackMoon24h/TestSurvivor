@@ -1,16 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
-public class Character : MonoBehaviour 
-{
+public class Enemies : MonoBehaviour {
+
     public enum Job
     {
-        Thug,
-        Soldier,
-        Thief,
-        Nurse
+        ZombieA,
+        ZombieB,
+        ZombieC
     }
 
     public enum PhysicalState
@@ -22,17 +20,9 @@ public class Character : MonoBehaviour
         Stunned
     }
 
-    public enum PsychologicalState
-    {
-        Idle,
-        Broken,
-        Virtue
-    }
-
     // Enum
     public Job job;
     public PhysicalState physicalState = PhysicalState.Normal;
-    public PsychologicalState psychologicalState = PsychologicalState.Idle;
 
     // Reference
     public BoxCollider2D col;
@@ -43,10 +33,6 @@ public class Character : MonoBehaviour
     public bool isDead = false;
 
     // Parameters
-
-    protected int m_level;
-    public int Level { get { return m_level; } set { m_level = value; } }
-
     protected string m_name;
     public string Name { get { return m_name; } set { m_name = value; } }
 
@@ -104,8 +90,6 @@ public class Character : MonoBehaviour
     protected float m_deathBlow;
     public float DeathBlow { get { return m_deathBlow; } set { m_deathBlow = value; } }
 
-
-
     // Images
     public Sprite thumbImage;
     public Sprite skill1;
@@ -123,13 +107,13 @@ public class Character : MonoBehaviour
         col = this.GetComponent<BoxCollider2D>();
         squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
         this.GetPosition();
-            ;	}
-	
-	// Update is called once per frame
+            ;   }
+    
+    // Update is called once per frame
     protected virtual void Update () 
     {
-		
-	}
+        
+    }
 
     protected virtual void OnClick()
     {

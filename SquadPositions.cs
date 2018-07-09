@@ -35,6 +35,7 @@ public class SquadPositions : MonoBehaviour
         }
     }
 
+    // Returns bool[4] checking if characters are assigned at each position
     public void UpdatePosStatus()
     {
         for (int i = 0; i < positions.Count; i++)
