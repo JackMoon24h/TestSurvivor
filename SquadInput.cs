@@ -38,6 +38,11 @@ public class SquadInput : MonoBehaviour
                 var worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 RaycastHit2D hit = Physics2D.Raycast(worldPos, new Vector3(0, 0, 10f), 100f);
 
+                if(worldPos.y < -4f)
+                {
+                    return;
+                }
+
                 // If player clicks an object
                 if(hit.collider != null)
                 {

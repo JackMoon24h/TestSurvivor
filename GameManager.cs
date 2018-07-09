@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class GameManager : MonoBehaviour 
 {
@@ -28,6 +29,9 @@ public class GameManager : MonoBehaviour
     public float delay = 2.5f;
 
 
+    public List<MainPanel> mainPanels = new List<MainPanel>();
+
+
     public UnityEvent startLevelEvent;
     public UnityEvent playLevelEvent;
     public UnityEvent battleEvent;
@@ -38,6 +42,13 @@ public class GameManager : MonoBehaviour
     {
         squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
         goal = GameObject.FindWithTag("Goal").GetComponent<ObjectTrigger>();
+        mainPanels = (Object.FindObjectsOfType<MainPanel>() as MainPanel[]).ToList();
+
+        for (int i = 0; i < 3; i++)
+        {
+            mainPanels[i].gameObject.SetActive(false);
+        }
+
     }
 
     // Use this for initialization
@@ -200,10 +211,8 @@ public class GameManager : MonoBehaviour
             case "Survivor":
 
                 // if it is not in the battle
-                if(!m_isBattle)
-                {
-                    squadManager.UpdateActiveUnit();
-                }
+                SetActivePanel(col.gameObject);
+
                 // Change active unit and Update status window
 
                 // if it is in the middle of battle, check if the clicked unit is active unit
@@ -227,6 +236,21 @@ public class GameManager : MonoBehaviour
                 // Start coroutine to pick up the object
 
                 break;
+        }
+    }
+
+    void SetActivePanel(GameObject target)
+    {
+        foreach(var t in mainPanels)
+        {
+            if(t.character.gameObject == target)
+            {
+                t.gameObject.SetActive(true);
+            }
+            else
+            {
+                t.gameObject.SetActive(false);
+            }
         }
     }
 
