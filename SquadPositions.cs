@@ -10,7 +10,7 @@ public class SquadPositions : MonoBehaviour
 {
     public GameObject[] unitPrefabs = new GameObject[4];
     public List<GameObject> positions = new List<GameObject>();
-    public List<MainPanel> mainPanels = new List<MainPanel>();
+    List<MainPanel> mainPanels = new List<MainPanel>();
 
     public bool[] positionStatus = new bool[4];
 
@@ -30,7 +30,10 @@ public class SquadPositions : MonoBehaviour
                 child.transform.parent = positions[i].transform;
                 child.transform.localPosition = Vector3.zero;
 
-                mainPanels[3-i].AssignCharacter(child);
+                if(child.gameObject.tag == "Survivor")
+                {
+                    mainPanels[3 - i].AssignCharacter(child);
+                }
             }
         }
     }
@@ -68,5 +71,6 @@ public class SquadPositions : MonoBehaviour
             return null;
         }
     }
+
 
 }

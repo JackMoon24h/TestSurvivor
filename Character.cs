@@ -40,6 +40,7 @@ public class Character : MonoBehaviour
 
     // Status
     public int currentPosition;
+    public bool isActive = false;
     public bool isDead = false;
 
     // Parameters
@@ -108,13 +109,18 @@ public class Character : MonoBehaviour
 
     // Images
     public Sprite thumbImage;
-    public Sprite skill1;
-    public Sprite skill2;
-    public Sprite skill3;
-    public Sprite skill4;
-    public Sprite skill5;
+    public Sprite skillSprite1;
+    public Sprite skillSprite2;
+    public Sprite skillSprite3;
+    public Sprite skillSprite4;
+    public Sprite skillSprite5;
 
     // Skills
+    public GameObject skill1;
+    public GameObject skill2;
+    public GameObject skill3;
+    public GameObject skill4;
+    public GameObject skill5;
 
 
     // Use this for initialization

@@ -9,9 +9,4 @@ public class Positions : MonoBehaviour
 
     public int posNumber;
 
-    //private void Start()
-    //{
-    //    squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
-
-    //}
 }

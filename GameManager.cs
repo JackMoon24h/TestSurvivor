@@ -9,7 +9,9 @@ public class GameManager : MonoBehaviour
 {
 
     public SquadManager squadManager;
+    public EnemySquadManager enemySquadManager;
     public ObjectTrigger goal;
+    Camera mainCamera;
 
     bool m_hasLevelStarted = false;
     public bool HasLevelStarted { get { return m_hasLevelStarted; } set { m_hasLevelStarted = value; } }
@@ -31,6 +33,7 @@ public class GameManager : MonoBehaviour
 
     public List<MainPanel> mainPanels = new List<MainPanel>();
 
+    Vector3 enemyPositionOffset = new Vector3(0f, 0.25f, 0f);
 
     public UnityEvent startLevelEvent;
     public UnityEvent playLevelEvent;
@@ -38,11 +41,20 @@ public class GameManager : MonoBehaviour
     public UnityEvent battleOverEvent;
     public UnityEvent endLevelEvent;
 
+
+    public enum TurnState
+    {
+        Player,
+        Enemy
+    }
+    public TurnState turnState = TurnState.Player;
+
     private void Awake()
     {
         squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
         goal = GameObject.FindWithTag("Goal").GetComponent<ObjectTrigger>();
         mainPanels = (Object.FindObjectsOfType<MainPanel>() as MainPanel[]).ToList();
+        mainCamera = Camera.main;
 
         for (int i = 0; i < 3; i++)
         {
@@ -192,11 +204,14 @@ public class GameManager : MonoBehaviour
     }
 
     // This will be called by triggers on the field
-    public void InitBattle()
+    public void InitBattle(GameObject enemySquadPrefab)
     {
         Debug.Log("BATTLE LEVEL");
         m_isBattle = true;
         squadManager.squadMover.Stop();
+
+        var enemySquad = Instantiate(enemySquadPrefab, squadManager.gameObject.transform.position + enemyPositionOffset, Quaternion.identity);
+        enemySquadManager = enemySquad.GetComponent<EnemySquadManager>();
 
         StartCoroutine("BattleLevelRoutine");
     }
@@ -252,11 +267,6 @@ public class GameManager : MonoBehaviour
                 t.gameObject.SetActive(false);
             }
         }
-    }
-
-    public void DeployEnemySquad()
-    {
-        
     }
 
     // For Test Purpose

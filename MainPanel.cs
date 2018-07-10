@@ -75,11 +75,11 @@ public class MainPanel : MonoBehaviour
     public void CreateImage(Character target)
     {
         thumb.sprite = target.thumbImage;
-        skill1.sprite = target.skill1;
-        skill2.sprite = target.skill2;
-        skill3.sprite = target.skill3;
-        skill4.sprite = target.skill4;
-        skill5.sprite = target.skill5;
+        skill1.sprite = target.skillSprite1;
+        skill2.sprite = target.skillSprite2;
+        skill3.sprite = target.skillSprite3;
+        skill4.sprite = target.skillSprite4;
+        skill5.sprite = target.skillSprite5;
     }
 
     public void UpdatePanel()

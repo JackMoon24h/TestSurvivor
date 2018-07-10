@@ -26,13 +26,15 @@ public class Enemies : MonoBehaviour {
 
     // Reference
     public BoxCollider2D col;
-    SquadManager squadManager;
-
+    EnemySquadManager enemySquadManager;
     // Status
     public int currentPosition;
     public bool isDead = false;
 
     // Parameters
+    protected int m_level;
+    public int Level { get { return m_level; } set { m_level = value; } }
+
     protected string m_name;
     public string Name { get { return m_name; } set { m_name = value; } }
 
@@ -92,11 +94,6 @@ public class Enemies : MonoBehaviour {
 
     // Images
     public Sprite thumbImage;
-    public Sprite skill1;
-    public Sprite skill2;
-    public Sprite skill3;
-    public Sprite skill4;
-    public Sprite skill5;
 
     // Skills
 
@@ -105,9 +102,9 @@ public class Enemies : MonoBehaviour {
     protected virtual void Start () 
     {
         col = this.GetComponent<BoxCollider2D>();
-        squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
+        enemySquadManager = Object.FindObjectOfType<EnemySquadManager>().GetComponent<EnemySquadManager>();
         this.GetPosition();
-            ;   }
+    }
     
     // Update is called once per frame
     protected virtual void Update () 

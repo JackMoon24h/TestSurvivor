@@ -4,11 +4,8 @@ using UnityEngine;
 
 public class BattleTrigger : MonoBehaviour 
 {
-    // Battle Trigger holds informations about enemies
-
-    public GameManager gameManager;
-
-    public 
+    GameManager gameManager;
+    public GameObject enemySquadPrefab;
 
 	// Use this for initialization
 	void Start () 
@@ -18,10 +15,10 @@ public class BattleTrigger : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.tag == "Player")
+        if(enemySquadPrefab != null && collision.tag == "Player")
         {
             // Inform gameManager that this battle trigger has been initialized
-            gameManager.InitBattle();
+            gameManager.InitBattle(enemySquadPrefab);
             Destroy(gameObject);
         }
     }
