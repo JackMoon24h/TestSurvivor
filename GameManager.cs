@@ -49,6 +49,9 @@ public class GameManager : MonoBehaviour
     }
     public TurnState turnState = TurnState.Player;
 
+
+    public int turnCount;
+
     private void Awake()
     {
         squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
@@ -144,9 +147,20 @@ public class GameManager : MonoBehaviour
         // Until something sets m_isBattle true, wait.
         while(m_isBattle)
         {
-            yield return null;
+            yield return new WaitForSeconds(0.5f);
 
-            // Something should set m_isBattle to true here
+            DecideTurn();
+
+            if(this.turnState == GameManager.TurnState.Player)
+            {
+                yield return StartCoroutine("PlayerTurnRoutine");
+            }
+            else
+            {
+                yield return StartCoroutine("EnemyTurnRoutine");
+            }
+
+            // Check if battle is over in order to turn off m_isBattle
         }
 
         yield return new WaitForSeconds(delay);
@@ -158,6 +172,25 @@ public class GameManager : MonoBehaviour
 
         squadManager.squadInput.InputEnabled = true;
         Debug.Log("BATTLE IS OVER");
+    }
+
+
+    IEnumerator PlayerTurnRoutine()
+    {
+        Debug.Log("Turn " + turnCount + " : Player's Turn");
+
+        yield return new WaitForSeconds(0.5f);
+
+        // Choose Active Unit
+        var currentList = squadManager.GetCurrentCharacterList();
+
+    }
+
+    IEnumerator EnemyTurnRoutine()
+    {
+        Debug.Log("Turn " + turnCount + " : Player's Turn");
+
+
     }
 
 
@@ -213,6 +246,8 @@ public class GameManager : MonoBehaviour
         var enemySquad = Instantiate(enemySquadPrefab, squadManager.gameObject.transform.position + enemyPositionOffset, Quaternion.identity);
         enemySquadManager = enemySquad.GetComponent<EnemySquadManager>();
 
+        turnCount = 0;
+
         StartCoroutine("BattleLevelRoutine");
     }
 
@@ -225,11 +260,22 @@ public class GameManager : MonoBehaviour
         {
             case "Survivor":
 
-                // if it is not in the battle
+                var target = col.gameObject.GetComponent<Character>();
+
+
+                // Change the panel info even id the clicked target is not active
+
                 SetActivePanel(col.gameObject);
 
-                // Change active unit and Update status window
-
+                // If not Battle, Change active unit and give control to that target
+                if(!IsBattle)
+                {
+                    target.OnClick();
+                }
+                else if (IsBattle && target == squadManager.activeUnit)
+                {
+                    target.OnClick();
+                }
                 // if it is in the middle of battle, check if the clicked unit is active unit
 
 
@@ -266,6 +312,19 @@ public class GameManager : MonoBehaviour
             {
                 t.gameObject.SetActive(false);
             }
+        }
+    }
+
+    public void DecideTurn()
+    {
+        // For debugging purpose, set random.range(0, 1)
+        // it should be set to random.range(-1, 1)
+        var temp = Random.Range(0f, 1f);
+
+        if(temp >= 0f)
+        {
+            this.turnState = GameManager.TurnState.Player;
+            turnCount++;
         }
     }
 

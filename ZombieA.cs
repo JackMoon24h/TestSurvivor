@@ -4,7 +4,10 @@ using UnityEngine;
 
 public class ZombieA : Enemies 
 {
-
+    protected override void Awake()
+    {
+        base.Awake();
+    }
     // Use this for initialization
     protected override void Start()
     {

@@ -36,7 +36,9 @@ public class SquadManager : MonoBehaviour
     {
         squadPositions.DeployUnits();
         squadPositions.UpdatePosStatus();
-        activeUnit = squadPositions.GetCharacterAtPos(1);
+
+        var temp = squadPositions.GetCharacterAtPos(1);
+        this.SetActiveUnit(temp);
     }
 
 
@@ -56,6 +58,31 @@ public class SquadManager : MonoBehaviour
                 squadMover.MoveBackWard();
             }
         }
-	}
+    }
 
+    public List<Character> GetCurrentCharacterList()
+    {
+        characterList.Clear();
+
+        for (int i = 0; i < 4; i++)
+        {
+            characterList.Add(this.squadPositions.GetCharacterAtPos(i+1));
+        }
+
+        return characterList;
+    }
+
+    public void SetActiveUnit(Character character)
+    {
+        if(this.activeUnit)
+        {
+            this.activeUnit.cursor.SetActive(false);
+            this.activeUnit.isActive = false;
+        }
+
+        this.activeUnit = character;
+        character.isActive = true;
+
+        character.cursor.SetActive(true);
+    }
 }

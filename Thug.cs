@@ -4,9 +4,14 @@ using UnityEngine;
 
 public class Thug : Character
 {
-    
-	// Use this for initialization
-	protected override void Start () 
+
+    protected override void Awake()
+    {
+        base.Awake();
+    }
+
+    // Use this for initialization
+    protected override void Start () 
     {
         base.Start();
         this.SetParameter();

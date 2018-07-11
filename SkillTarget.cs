@@ -15,17 +15,19 @@ public class SkillTarget : MonoBehaviour
         TEAM,
         SELF
     }
+    public Target target;
 
     public enum TargetType
     {
         SELECTABLE,
         FIXED
     }
+    public TargetType targetType;
 
     public bool[] availablePos = new bool[4];
     public bool[] targetRange = new bool[4];
+    public List<GameObject> actualTargets = new List<GameObject>();
 
-    public Target target;
 
     private void Start()
     {
@@ -37,20 +39,29 @@ public class SkillTarget : MonoBehaviour
     {
         if(CanCast())
         {
+
+            actualTargets.Clear();
+
             switch(target)
             {
                 case Target.ENEMY:
                     // Enemies's target cursors should be shown if they are alive
+
+                    var list = enemySquadManager.GetCurrentEnemyList();
+
+                    foreach(var t in list)
+                    {
+                        t.targetCursor.SetActive(false);
+                    }
+
                     for (int i = 0; i < targetRange.Length; i++)
                     {
                         if(targetRange[i])
                         {
-                            enemySquadManager.enemySquadPositions.GetCharacterAtPos(i + 1);
-                            // SetActive (false) to target cursor!==========================
-
-
+                            var tar = enemySquadManager.enemySquadPositions.GetEnemyAtPos(i + 1);
+                            tar.targetCursor.SetActive(true);
+                            actualTargets.Add(tar.gameObject);
                         }
-
                     }
 
                     // Give them to gameManager
@@ -85,20 +96,24 @@ public class SkillTarget : MonoBehaviour
     {
         if (!gameManager.IsBattle)
         { 
+            // Show Skill Information
             return false;
         }
 
         if (!character.isActive)
         {
+            // Show Skill Information
             return false;
         }
 
-
-        for (int i = 0; i < availablePos.Length; i++)
+        if(gameManager.turnState == GameManager.TurnState.Player)
         {
-            if (availablePos[character.currentPosition - 1])
+            for (int i = 0; i < availablePos.Length; i++)
             {
-                return true;
+                if (availablePos[character.currentPosition - 1])
+                {
+                    return true;
+                }
             }
         }
 

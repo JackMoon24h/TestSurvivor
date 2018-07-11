@@ -36,7 +36,10 @@ public class Character : MonoBehaviour
 
     // Reference
     public BoxCollider2D col;
+    public GameObject cursor;
+    public GameObject targetCursor;
     SquadManager squadManager;
+    GameManager gameManager;
 
     // Status
     public int currentPosition;
@@ -123,13 +126,21 @@ public class Character : MonoBehaviour
     public GameObject skill5;
 
 
+    protected virtual void Awake()
+    {
+        col = this.GetComponent<BoxCollider2D>();
+        cursor = this.transform.GetChild(1).gameObject;
+        targetCursor = this.transform.GetChild(2).gameObject;
+        gameManager = Object.FindObjectOfType<GameManager>().GetComponent<GameManager>();
+        squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
+    }
+
     // Use this for initialization
     protected virtual void Start () 
     {
-        col = this.GetComponent<BoxCollider2D>();
-        squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
+        
         this.GetPosition();
-            ;	}
+    }
 	
 	// Update is called once per frame
     protected virtual void Update () 
@@ -137,10 +148,15 @@ public class Character : MonoBehaviour
 		
 	}
 
-    protected virtual void OnClick()
+    public void OnClick()
     {
         // GameManager will update status panel
         // If it is in the middle of battle, Start Coroutine
+        if(!gameManager.IsBattle)
+        {
+            squadManager.SetActiveUnit(this);
+        }
+
 
         // Get positioned units's information
 

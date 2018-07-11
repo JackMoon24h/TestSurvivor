@@ -26,9 +26,14 @@ public class Enemies : MonoBehaviour {
 
     // Reference
     public BoxCollider2D col;
+    public GameObject cursor;
+    public GameObject targetCursor;
     EnemySquadManager enemySquadManager;
+    GameManager gameManager;
+
     // Status
     public int currentPosition;
+    public bool isActive = false;
     public bool isDead = false;
 
     // Parameters
@@ -98,11 +103,19 @@ public class Enemies : MonoBehaviour {
     // Skills
 
 
+    protected virtual void Awake()
+    {
+        col = this.GetComponent<BoxCollider2D>();
+        cursor = this.transform.GetChild(1).gameObject;
+        targetCursor = this.transform.GetChild(2).gameObject;
+        gameManager = Object.FindObjectOfType<GameManager>().GetComponent<GameManager>();
+        enemySquadManager = Object.FindObjectOfType<EnemySquadManager>().GetComponent<EnemySquadManager>();
+    }
+
     // Use this for initialization
     protected virtual void Start () 
     {
-        col = this.GetComponent<BoxCollider2D>();
-        enemySquadManager = Object.FindObjectOfType<EnemySquadManager>().GetComponent<EnemySquadManager>();
+        
         this.GetPosition();
     }
     
@@ -112,7 +125,7 @@ public class Enemies : MonoBehaviour {
         
     }
 
-    protected virtual void OnClick()
+    public void OnClick()
     {
         // GameManager will update status panel
         // If it is in the middle of battle, Start Coroutine
