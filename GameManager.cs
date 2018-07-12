@@ -30,6 +30,8 @@ public class GameManager : MonoBehaviour
 
     public float delay = 2.5f;
 
+    bool m_isTurnComplete = false;
+    public bool IsTurnComplete { get { return m_isTurnComplete; } set { m_isTurnComplete = value; }}
 
     public List<MainPanel> mainPanels = new List<MainPanel>();
 
@@ -49,8 +51,19 @@ public class GameManager : MonoBehaviour
     }
     public TurnState turnState = TurnState.Player;
 
-
     public int turnCount;
+
+    public enum TurnStep
+    {
+        WaitForCommand,
+        ChooseCommand,
+        DrawTarget,
+        ConfirmCommand,
+        Act,
+        FinishTurn
+    }
+    public TurnStep turnStep = TurnStep.WaitForCommand;
+
 
     private void Awake()
     {
@@ -150,12 +163,13 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
 
             DecideTurn();
+            m_isTurnComplete = false;
 
             if(this.turnState == GameManager.TurnState.Player)
             {
                 yield return StartCoroutine("PlayerTurnRoutine");
             }
-            else
+            else if (this.turnState == GameManager.TurnState.Enemy)
             {
                 yield return StartCoroutine("EnemyTurnRoutine");
             }
@@ -183,14 +197,52 @@ public class GameManager : MonoBehaviour
 
         // Choose Active Unit
         var currentList = squadManager.GetCurrentCharacterList();
+        var activeUnit = currentList[Random.Range(0, currentList.Count)];
 
+        //squadManager.SetActiveUnit(activeUnit);
+        //this.SetActivePanel(activeUnit.gameObject);
+            
+        while(!m_isTurnComplete)
+        {
+            switch (turnStep)
+            {
+                case TurnStep.WaitForCommand:
+
+                    break;
+
+                case TurnStep.ChooseCommand:
+
+                    break;
+
+                case TurnStep.DrawTarget:
+
+                    break;
+
+                case TurnStep.ConfirmCommand:
+
+                    break;
+
+                case TurnStep.Act:
+
+                    break;
+
+                case TurnStep.FinishTurn:
+
+                    break;
+            }
+        }
+    }
+
+    public void WaitForCommand()
+    {
+        // Describe Animation Effect : Highlighten Skill Buttons or Enables Skill buttons to click
     }
 
     IEnumerator EnemyTurnRoutine()
     {
         Debug.Log("Turn " + turnCount + " : Player's Turn");
 
-
+        yield return new WaitForSeconds(0.5f);
     }
 
 
@@ -262,9 +314,6 @@ public class GameManager : MonoBehaviour
 
                 var target = col.gameObject.GetComponent<Character>();
 
-
-                // Change the panel info even id the clicked target is not active
-
                 SetActivePanel(col.gameObject);
 
                 // If not Battle, Change active unit and give control to that target
@@ -300,7 +349,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void SetActivePanel(GameObject target)
+    public void SetActivePanel(GameObject target)
     {
         foreach(var t in mainPanels)
         {
