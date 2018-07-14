@@ -119,11 +119,11 @@ public class Character : MonoBehaviour
     public Sprite skillSprite5;
 
     // Skills
-    public GameObject skill1;
-    public GameObject skill2;
-    public GameObject skill3;
-    public GameObject skill4;
-    public GameObject skill5;
+    public Skill skill1;
+    public Skill skill2;
+    public Skill skill3;
+    public Skill skill4;
+    public Skill skill5;
 
 
     protected virtual void Awake()

@@ -6,6 +6,7 @@ public class SkillTarget : MonoBehaviour
 {
     GameManager gameManager;
     SquadManager squadManager;
+    Skill skillManager;
     EnemySquadManager enemySquadManager;
     Character character;
 
@@ -33,66 +34,73 @@ public class SkillTarget : MonoBehaviour
     {
         gameManager = Object.FindObjectOfType<GameManager>().GetComponent<GameManager>();
         squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
+        skillManager = GetComponent<Skill>();
     }
 
+    // When skill button is clicked, this function will be called
     public void DrawTarget()
     {
-        if(CanCast())
+        if (gameManager.turnStep == GameManager.TurnStep.ConfirmCommand)
         {
+            ResetDraw();
+        }
 
-            actualTargets.Clear();
+        if(!CanCast())
+        {
+            return;
+        }
 
-            switch(target)
-            {
-                case Target.ENEMY:
-                    // Enemies's target cursors should be shown if they are alive
+        switch (target)
+        {
+            case Target.ENEMY:
+                // Enemies's target cursors should be shown if they are alive
 
-                    var list = enemySquadManager.GetCurrentEnemyList();
+                var list = enemySquadManager.GetCurrentEnemyList();
 
-                    foreach(var t in list)
+                foreach (var t in list)
+                {
+                    t.targetCursor.SetActive(false);
+                }
+
+                for (int i = 0; i < targetRange.Length; i++)
+                {
+                    if (targetRange[i])
                     {
-                        t.targetCursor.SetActive(false);
+                        var tar = enemySquadManager.enemySquadPositions.GetEnemyAtPos(i + 1);
+                        tar.targetCursor.SetActive(true);
+                        actualTargets.Add(tar.gameObject);
                     }
+                }
 
-                    for (int i = 0; i < targetRange.Length; i++)
-                    {
-                        if(targetRange[i])
-                        {
-                            var tar = enemySquadManager.enemySquadPositions.GetEnemyAtPos(i + 1);
-                            tar.targetCursor.SetActive(true);
-                            actualTargets.Add(tar.gameObject);
-                        }
-                    }
+                // Give them to gameManager
 
-                    // Give them to gameManager
+                // Swift to next routine : wait for confirm order
+                break;
 
-                    // Swift to next routine : wait for confirm order
-                    break;
+            case Target.TEAM:
+                // Team's target cursors should be shown if they are alive
 
-                case Target.TEAM:
-                    // Team's target cursors should be shown if they are alive
+                // Give them to gameManager
 
-                    // Give them to gameManager
+                // Swift to next routine : wait for confirm order
+                break;
 
-                    // Swift to next routine : wait for confirm order
-                    break;
+            case Target.SELF:
+                // Self's target cursors should be shown
 
-                case Target.SELF:
-                    // Self's target cursors should be shown
+                // Give them to gameManager
 
-                    // Give them to gameManager
-
-                    // Swift to next routine : wait for confirm order
-                    break;
-            }
-
+                // Swift to next routine : wait for confirm order
+                break;
         }
 
         // Go to next step : wait for comfirm action
+        gameManager.turnStep = GameManager.TurnStep.ConfirmCommand;
     }
 
     // Check the character's currentPosition if character can cast the selected skill
-    public bool CanCast()
+
+    bool CanCast()
     {
         if (!gameManager.IsBattle)
         { 
@@ -118,5 +126,18 @@ public class SkillTarget : MonoBehaviour
         }
 
         return false;
+    }
+
+    void ResetDraw()
+    {
+        foreach(var t in actualTargets)
+        {
+            t.GetComponent<Enemies>().targetCursor.SetActive(false);
+        }
+
+        actualTargets.Clear();
+
+        gameManager.commandBtn.SetActive(false);
+        gameManager.turnStep = GameManager.TurnStep.ChooseCommand;
     }
 }

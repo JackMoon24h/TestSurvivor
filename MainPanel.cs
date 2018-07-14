@@ -61,7 +61,6 @@ public class MainPanel : MonoBehaviour
         {
             unitInfo[i] = this.gameObject.transform.GetChild(i).GetComponent<Text>(); 
         }
-
     }
 
 

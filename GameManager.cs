@@ -34,6 +34,7 @@ public class GameManager : MonoBehaviour
     public bool IsTurnComplete { get { return m_isTurnComplete; } set { m_isTurnComplete = value; }}
 
     public List<MainPanel> mainPanels = new List<MainPanel>();
+    public GameObject commandBtn;
 
     Vector3 enemyPositionOffset = new Vector3(0f, 0.25f, 0f);
 
@@ -41,6 +42,7 @@ public class GameManager : MonoBehaviour
     public UnityEvent playLevelEvent;
     public UnityEvent battleEvent;
     public UnityEvent battleOverEvent;
+    public UnityEvent loseLevelEvent;
     public UnityEvent endLevelEvent;
 
 
@@ -52,18 +54,19 @@ public class GameManager : MonoBehaviour
     public TurnState turnState = TurnState.Player;
 
     public int turnCount;
+    public TurnState previousTurnState;
 
     public enum TurnStep
     {
         WaitForCommand,
         ChooseCommand,
-        DrawTarget,
         ConfirmCommand,
         Act,
         FinishTurn
     }
     public TurnStep turnStep = TurnStep.WaitForCommand;
 
+    public float skillAnimTime = 3.5f;
 
     private void Awake()
     {
@@ -77,6 +80,8 @@ public class GameManager : MonoBehaviour
             mainPanels[i].gameObject.SetActive(false);
         }
 
+        commandBtn = GameObject.Find("CommandButton");
+        commandBtn.SetActive(false);
     }
 
     // Use this for initialization
@@ -157,24 +162,11 @@ public class GameManager : MonoBehaviour
 
         squadManager.squadInput.InputEnabled = true;
 
-        // Until something sets m_isBattle true, wait.
+        StartTurn();
+
         while(m_isBattle)
         {
-            yield return new WaitForSeconds(0.5f);
-
-            DecideTurn();
-            m_isTurnComplete = false;
-
-            if(this.turnState == GameManager.TurnState.Player)
-            {
-                yield return StartCoroutine("PlayerTurnRoutine");
-            }
-            else if (this.turnState == GameManager.TurnState.Enemy)
-            {
-                yield return StartCoroutine("EnemyTurnRoutine");
-            }
-
-            // Check if battle is over in order to turn off m_isBattle
+            yield return null;
         }
 
         yield return new WaitForSeconds(delay);
@@ -186,63 +178,6 @@ public class GameManager : MonoBehaviour
 
         squadManager.squadInput.InputEnabled = true;
         Debug.Log("BATTLE IS OVER");
-    }
-
-
-    IEnumerator PlayerTurnRoutine()
-    {
-        Debug.Log("Turn " + turnCount + " : Player's Turn");
-
-        yield return new WaitForSeconds(0.5f);
-
-        // Choose Active Unit
-        var currentList = squadManager.GetCurrentCharacterList();
-        var activeUnit = currentList[Random.Range(0, currentList.Count)];
-
-        //squadManager.SetActiveUnit(activeUnit);
-        //this.SetActivePanel(activeUnit.gameObject);
-            
-        while(!m_isTurnComplete)
-        {
-            switch (turnStep)
-            {
-                case TurnStep.WaitForCommand:
-
-                    break;
-
-                case TurnStep.ChooseCommand:
-
-                    break;
-
-                case TurnStep.DrawTarget:
-
-                    break;
-
-                case TurnStep.ConfirmCommand:
-
-                    break;
-
-                case TurnStep.Act:
-
-                    break;
-
-                case TurnStep.FinishTurn:
-
-                    break;
-            }
-        }
-    }
-
-    public void WaitForCommand()
-    {
-        // Describe Animation Effect : Highlighten Skill Buttons or Enables Skill buttons to click
-    }
-
-    IEnumerator EnemyTurnRoutine()
-    {
-        Debug.Log("Turn " + turnCount + " : Player's Turn");
-
-        yield return new WaitForSeconds(0.5f);
     }
 
 
@@ -271,6 +206,8 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(scene.name);
     }
 
+
+
     // attached to start button in order to start the level
     public void PlayLevel()
     {
@@ -298,6 +235,9 @@ public class GameManager : MonoBehaviour
         var enemySquad = Instantiate(enemySquadPrefab, squadManager.gameObject.transform.position + enemyPositionOffset, Quaternion.identity);
         enemySquadManager = enemySquad.GetComponent<EnemySquadManager>();
 
+        enemySquadManager.GetCurrentEnemyList();
+        squadManager.GetCurrentCharacterList();
+
         turnCount = 0;
 
         StartCoroutine("BattleLevelRoutine");
@@ -319,24 +259,16 @@ public class GameManager : MonoBehaviour
                 // If not Battle, Change active unit and give control to that target
                 if(!IsBattle)
                 {
-                    target.OnClick();
-                }
-                else if (IsBattle && target == squadManager.activeUnit)
-                {
-                    target.OnClick();
+                    squadManager.SetActiveUnit(target);
                 }
                 // if it is in the middle of battle, check if the clicked unit is active unit
-
-
-
                 break;
 
             case "Enemy":
-                
-                break;
 
-            case "Skill":
-                // If skill has button component, maybe this is not necessary
+                var enemy = col.gameObject.GetComponent<Enemies>();
+                // Show enemy information by poping up window
+
                 break;
 
             case "Object":
@@ -364,29 +296,241 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void DecideTurn()
-    {
-        // For debugging purpose, set random.range(0, 1)
-        // it should be set to random.range(-1, 1)
-        var temp = Random.Range(0f, 1f);
 
-        if(temp >= 0f)
+    public void StartTurn()
+    {
+        // For debugging purpose, set random.range(0, 1). It should be set to random.range(-1, 1)
+        var min = 0;
+        var max = 1;
+        var temp = Random.Range(min, max);
+
+        m_isTurnComplete = false;
+
+        if(temp >= 0)
         {
             this.turnState = GameManager.TurnState.Player;
             turnCount++;
+            StartCoroutine("PlayerTurnRoutine");
         }
+        else
+        {
+            this.turnState = GameManager.TurnState.Enemy;
+            turnCount++;
+            StartCoroutine("EnemyTurnRoutine");
+        }
+    }
+
+
+    IEnumerator PlayerTurnRoutine()
+    {
+        // Choose Active Unit
+        var currentList = squadManager.GetCurrentCharacterList();
+        var activeUnit = currentList[Random.Range(0, currentList.Count)];
+
+        squadManager.SetActiveUnit(activeUnit);
+        this.SetActivePanel(activeUnit.gameObject);
+
+        Debug.Log("Turn " + turnCount + " : Player's Turn - position " + squadManager.activeUnit.currentPosition);
+
+        yield return new WaitForSeconds(0.5f);
+
+        while (turnStep == TurnStep.WaitForCommand)
+        {
+            // activeUnit.Say();
+            yield return new WaitForSeconds(1.5f);
+
+            turnStep = TurnStep.ChooseCommand;
+        }
+
+        while(turnStep == TurnStep.ChooseCommand)
+        {
+            // If Skill Button is clicked, it will call SkillTarget.DrawTargets() and move to the next TurnStep
+
+            yield return null;
+        }
+
+        while (turnStep == TurnStep.ConfirmCommand)
+        {
+            commandBtn.SetActive(true);
+
+            yield return null;
+        }
+
+        while (turnStep == TurnStep.Act)
+        {
+            // If comandBtn is clicked, it will change the TurnStep to Act.
+
+            // Animations come here
+
+            // Set Anim Time and then change turn step
+            yield return new WaitForSeconds(skillAnimTime);
+
+            turnStep = TurnStep.FinishTurn;
+        }
+
+        while (turnStep == TurnStep.FinishTurn)
+        {
+            // Calculation, unit saying, status change, etc
+
+            // If second Anim is over, change the turnstep
+            yield return null;
+        }
+
+        m_isTurnComplete = true;
+
+        yield return new WaitForSeconds(0.5f);
+
+        // Check if Enemies are all dead after turn is complete
+        if(AreEnemiesAllDead())
+        {
+            m_isBattle = false;
+        }
+        else
+        {
+            UpdateTurn();
+        }
+    }
+
+    public void UpdateTurn()
+    {
+        Debug.Log("Turn Updated");
+        StartTurn();
+    }
+
+    IEnumerator EnemyTurnRoutine()
+    {
+        // Choose Active Unit
+        var currentList = enemySquadManager.GetCurrentEnemyList();
+        var activeUnit = currentList[Random.Range(0, currentList.Count)];
+
+        enemySquadManager.SetActiveUnit(activeUnit);
+
+        Debug.Log("Turn " + turnCount + " : Enemy's Turn - position " + enemySquadManager.activeUnit.currentPosition);
+
+        yield return new WaitForSeconds(0.5f);
+
+        while (turnStep == TurnStep.WaitForCommand)
+        {
+            // activeUnit.Say();
+            yield return new WaitForSeconds(1.5f);
+
+            turnStep = TurnStep.ChooseCommand;
+        }
+
+        while (turnStep == TurnStep.ChooseCommand)
+        {
+            // We need a function to choose 1 skill Randomly
+
+            yield return null;
+        }
+
+        while (turnStep == TurnStep.ConfirmCommand)
+        {
+            // This Step is not necessary for enemies
+
+            yield return null;
+        }
+
+        while (turnStep == TurnStep.Act)
+        {
+            // Animations come here
+
+            // Set Anim Time and then change turn step
+            yield return new WaitForSeconds(skillAnimTime);
+
+            turnStep = TurnStep.FinishTurn;
+        }
+
+        while (turnStep == TurnStep.FinishTurn)
+        {
+            // Calculation, unit saying, status change, etc
+
+            // If second Anim is over, change the turnstep
+            yield return null;
+        }
+
+        m_isTurnComplete = true;
+
+        yield return new WaitForSeconds(0.5f);
+
+        // Check if Enemies are all dead after turn is complete
+        if (AreSurvivorsAllDead())
+        {
+            m_isBattle = false;
+            LoseLevel();
+        }
+        else
+        {
+            UpdateTurn();
+        }
+    }
+
+    public void LoseLevel()
+    {
+        StartCoroutine(LoseLevelRoutine());
+    }
+
+    IEnumerator LoseLevelRoutine()
+    {
+        m_isGameOver = true;
+
+        yield return new WaitForSeconds(1.5f);
+
+        if(loseLevelEvent != null)
+        {
+            loseLevelEvent.Invoke();
+        }
+
+        yield return new WaitForSeconds(1.5f);
+
+        Debug.Log("LOSE! =============");
+
+        RestartLevel();
+    }
+
+
+
+    bool AreEnemiesAllDead()
+    {
+        enemySquadManager.GetCurrentEnemyList();
+        foreach(var enemy in enemySquadManager.enemyList)
+        {
+            if(!enemy.isDead)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    bool AreSurvivorsAllDead()
+    {
+        squadManager.GetCurrentCharacterList();
+        foreach(var survivor in squadManager.characterList)
+        {
+            if(!survivor.isDead)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // This will be called by clicking commandBtn
+    public void ConfirmCommand()
+    {
+        Debug.Log("Command Confirmed!");
+        this.turnStep = TurnStep.Act;
     }
 
     // For Test Purpose
     public void TestButton()
     {
-        StartCoroutine(TestRoutine());
-    }
-
-    IEnumerator TestRoutine()
-    {
-        yield return new WaitForSeconds(2f);
-        m_isBattle = false;
+        m_isTurnComplete = true;
+        foreach (var enemy in enemySquadManager.enemyList)
+        {
+            enemy.isDead = true;
+        }
     }
 
 }

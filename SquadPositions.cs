@@ -62,12 +62,10 @@ public class SquadPositions : MonoBehaviour
 
         if(positionStatus[posNum - 1])
         {
-            Debug.Log("Character at position number " + posNum + " is selected!");
             return this.positions[posNum - 1].transform.GetChild(0).GetComponent<Character>();
         }
         else
         {
-            Debug.Log("Character at position number " + posNum + " is null=====");
             return null;
         }
     }

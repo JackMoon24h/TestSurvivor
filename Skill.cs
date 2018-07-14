@@ -1,43 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Skill : MonoBehaviour 
 {
-    public GameManager gameManager;
+    GameManager gameManager;
+    SquadManager squadManager;
+    EnemySquadManager enemySquadManager;
+
     public Character character;
-
-    public enum MainTarget
-    {
-        ENEMY,
-        TEAM,
-        SELF
-    }
-
-    public enum MainEffect
-    {
-        DAMAGE,
-        MENTALDAMAGE,
-        HEAL,
-        CURE,
-        BLEED,
-        INFECT,
-        STUN,
-        MOVE,
-        STATECHANGE
-    }
-
-    public bool[] targetRange = new bool[4];
-    public bool[] availablePos = new bool[4];
-
+    public MainPanel mainPanel;
+    public Button skillBtn;
     public Sprite image;
 
+    public SkillTarget skillTarget;
+    public SkillEffect skillEffect;
+
     // Skill Paramters
-    protected MainTarget mainTarget;
-    protected MainEffect mainEffect;
     protected string skillName;
     protected string description;
-
     protected int level;
     protected int damage;
     protected int mentalDamage;
@@ -47,16 +29,15 @@ public class Skill : MonoBehaviour
     protected int infectProb;
     protected int stunProb;
     protected int moveProb;
-    protected string stateChange;
 
     // Use this for initialization
     void Start () 
     {
         gameManager = Object.FindObjectOfType<GameManager>().GetComponent<GameManager>();
+        squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
         character = this.GetComponent<Character>();
 	}
 	
-    // When this button is clicked...
     public void OnClickEnter()
     {
         
