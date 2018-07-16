@@ -40,6 +40,8 @@ public class Character : MonoBehaviour
     public GameObject targetCursor;
     SquadManager squadManager;
     GameManager gameManager;
+    AnimManager animManager;
+    Animator enemyAnimator;
 
     // Status
     public int currentPosition;
@@ -118,21 +120,22 @@ public class Character : MonoBehaviour
     public Sprite skillSprite4;
     public Sprite skillSprite5;
 
-    // Skills
-    public Skill skill1;
-    public Skill skill2;
-    public Skill skill3;
-    public Skill skill4;
-    public Skill skill5;
-
+    public List<Skill> skills = new List<Skill>();
 
     protected virtual void Awake()
     {
         col = this.GetComponent<BoxCollider2D>();
+        animManager = this.transform.GetChild(0).gameObject.GetComponent<AnimManager>();
         cursor = this.transform.GetChild(1).gameObject;
         targetCursor = this.transform.GetChild(2).gameObject;
         gameManager = Object.FindObjectOfType<GameManager>().GetComponent<GameManager>();
         squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
+
+        for (int i = 3; i < 8; i++)
+        {
+            var temp = this.transform.GetChild(i).GetComponent<Skill>();
+            skills.Add(temp);
+        }
     }
 
     // Use this for initialization
@@ -178,5 +181,32 @@ public class Character : MonoBehaviour
     {
         this.currentPosition = this.transform.parent.GetComponent<Positions>().posNumber;
     }
-        
+
+    public Skill GetSkill(int num)
+    {
+        return skills[num - 1];
+    }
+
+    public void Act(Skill skill, List<GameObject> activeTargets)
+    {
+        gameManager.IsActing = true;
+
+        switch(skill.skillEffect.mainEffect)
+        {
+            case SkillEffect.MainEffect.DAMAGE:
+                Shoot(activeTargets);
+                break;
+        }
+    }
+
+    public void Pick(GameObject item)
+    {
+        StartCoroutine(animManager.PickRoutine(item));
+    }
+
+    public void Shoot(List<GameObject> targets)
+    {
+        StartCoroutine(animManager.ShootRoutine(targets));
+    }
+
 }

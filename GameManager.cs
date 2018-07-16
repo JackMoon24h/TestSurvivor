@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour 
 {
@@ -11,7 +12,7 @@ public class GameManager : MonoBehaviour
     public SquadManager squadManager;
     public EnemySquadManager enemySquadManager;
     public ObjectTrigger goal;
-    Camera mainCamera;
+    public Camera mainCamera;
 
     bool m_hasLevelStarted = false;
     public bool HasLevelStarted { get { return m_hasLevelStarted; } set { m_hasLevelStarted = value; } }
@@ -33,8 +34,12 @@ public class GameManager : MonoBehaviour
     bool m_isTurnComplete = false;
     public bool IsTurnComplete { get { return m_isTurnComplete; } set { m_isTurnComplete = value; }}
 
+    bool m_isActing = false;
+    public bool IsActing { get { return m_isActing; } set { m_isActing = value; } }
+
     public List<MainPanel> mainPanels = new List<MainPanel>();
     public GameObject commandBtn;
+    public Narrator narrator;
 
     Vector3 enemyPositionOffset = new Vector3(0f, 0.25f, 0f);
 
@@ -44,7 +49,7 @@ public class GameManager : MonoBehaviour
     public UnityEvent battleOverEvent;
     public UnityEvent loseLevelEvent;
     public UnityEvent endLevelEvent;
-
+    public UnityEvent narrationEvent;
 
     public enum TurnState
     {
@@ -68,12 +73,18 @@ public class GameManager : MonoBehaviour
 
     public float skillAnimTime = 3.5f;
 
+    // Skill Related
+    public Character actor;
+    public Skill activeSkill;
+    public List<GameObject> activeTargets = new List<GameObject>();
+
     private void Awake()
     {
         squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
         goal = GameObject.FindWithTag("Goal").GetComponent<ObjectTrigger>();
         mainPanels = (Object.FindObjectsOfType<MainPanel>() as MainPanel[]).ToList();
         mainCamera = Camera.main;
+        narrator = GameObject.Find("Narration").GetComponent<Narrator>();
 
         for (int i = 0; i < 3; i++)
         {
@@ -96,6 +107,16 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("No Squad found!");
         }
 	}
+
+    public void UpdateNarration(string narration)
+    {
+        narrator.gameObject.GetComponent<Text>().text = narration;
+
+        if (narrationEvent != null)
+        {
+            narrationEvent.Invoke();
+        }
+    }
 
     IEnumerator RunGameLoop()
     {
@@ -351,19 +372,26 @@ public class GameManager : MonoBehaviour
 
         while (turnStep == TurnStep.ConfirmCommand)
         {
-            commandBtn.SetActive(true);
 
             yield return null;
         }
 
         while (turnStep == TurnStep.Act)
         {
-            // If comandBtn is clicked, it will change the TurnStep to Act.
+            // If comandBtn is clicked, it will call ComfirmCommand() in order to change the TurnStep to Act.
+
+            UpdateNarration(activeSkill.skillName + " Strikes...!");
 
             // Animations come here
+            actor.Act(activeSkill, activeTargets);
+
+            while(m_isActing)
+            {
+                yield return null;
+            }
 
             // Set Anim Time and then change turn step
-            yield return new WaitForSeconds(skillAnimTime);
+            yield return new WaitForSeconds(0.5f);
 
             turnStep = TurnStep.FinishTurn;
         }
@@ -373,16 +401,19 @@ public class GameManager : MonoBehaviour
             // Calculation, unit saying, status change, etc
 
             // If second Anim is over, change the turnstep
-            yield return null;
+            yield return new WaitForSeconds(1f);
+
+            turnStep = TurnStep.WaitForCommand;
         }
 
-        m_isTurnComplete = true;
+        yield return new WaitForSeconds(1f);
 
-        yield return new WaitForSeconds(0.5f);
+        m_isTurnComplete = true;
 
         // Check if Enemies are all dead after turn is complete
         if(AreEnemiesAllDead())
         {
+            Debug.Log("All Enemies Are Dead");
             m_isBattle = false;
         }
         else
@@ -521,6 +552,15 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Command Confirmed!");
         this.turnStep = TurnStep.Act;
+
+        activeSkill.skillTarget.ResetDraw();
+    }
+
+    public void SetAction(Character activeUnit, Skill skill, List<GameObject> targets)
+    {
+        this.actor = activeUnit;
+        this.activeSkill = skill;
+        this.activeTargets = targets;
     }
 
     // For Test Purpose

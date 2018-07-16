@@ -21,6 +21,15 @@ public class SkillEffect : MonoBehaviour
     }
     public MainEffect mainEffect;
 
+    public float damageRate;
+    public float mentalDamageRate;
+    public float healRate;
+    public float cureRate;
+    public float bleedRate;
+    public float infectRate;
+    public float stunRate;
+    public float moveRate;
+
 	// Use this for initialization
 	void Start () 
 	{

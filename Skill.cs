@@ -10,36 +10,31 @@ public class Skill : MonoBehaviour
     EnemySquadManager enemySquadManager;
 
     public Character character;
-    public MainPanel mainPanel;
-    public Button skillBtn;
     public Sprite image;
 
     public SkillTarget skillTarget;
     public SkillEffect skillEffect;
 
     // Skill Paramters
-    protected string skillName;
-    protected string description;
-    protected int level;
-    protected int damage;
-    protected int mentalDamage;
-    protected int heal;
-    protected int cure;
-    protected int bleedProb;
-    protected int infectProb;
-    protected int stunProb;
-    protected int moveProb;
+    public string skillName;
+    public string description;
+
+    int level = 1;
+
 
     // Use this for initialization
     void Start () 
     {
         gameManager = Object.FindObjectOfType<GameManager>().GetComponent<GameManager>();
         squadManager = Object.FindObjectOfType<SquadManager>().GetComponent<SquadManager>();
-        character = this.GetComponent<Character>();
+        character = this.transform.parent.GetComponent<Character>();
+        skillTarget = GetComponent<SkillTarget>();
+        skillEffect = GetComponent<SkillEffect>();
 	}
 	
     public void OnClickEnter()
     {
-        
+        Debug.Log(this.name + " is Clicked");
+        skillTarget.DrawTarget();
     }
 }

@@ -8,7 +8,6 @@ public class SkillTarget : MonoBehaviour
     SquadManager squadManager;
     Skill skillManager;
     EnemySquadManager enemySquadManager;
-    Character character;
 
     public enum Target
     {
@@ -44,18 +43,24 @@ public class SkillTarget : MonoBehaviour
         {
             ResetDraw();
         }
+        actualTargets.Clear();
 
         if(!CanCast())
         {
+            Debug.Log("Cannot Cast");
             return;
         }
+
+        gameManager.commandBtn.SetActive(true);
+
+        gameManager.turnStep = GameManager.TurnStep.ConfirmCommand;
 
         switch (target)
         {
             case Target.ENEMY:
                 // Enemies's target cursors should be shown if they are alive
 
-                var list = enemySquadManager.GetCurrentEnemyList();
+                var list = gameManager.enemySquadManager.GetCurrentEnemyList();
 
                 foreach (var t in list)
                 {
@@ -66,36 +71,30 @@ public class SkillTarget : MonoBehaviour
                 {
                     if (targetRange[i])
                     {
-                        var tar = enemySquadManager.enemySquadPositions.GetEnemyAtPos(i + 1);
+                        var tar = gameManager.enemySquadManager.enemySquadPositions.GetEnemyAtPos(i + 1);
                         tar.targetCursor.SetActive(true);
                         actualTargets.Add(tar.gameObject);
                     }
                 }
-
-                // Give them to gameManager
-
-                // Swift to next routine : wait for confirm order
                 break;
 
             case Target.TEAM:
                 // Team's target cursors should be shown if they are alive
 
-                // Give them to gameManager
-
-                // Swift to next routine : wait for confirm order
                 break;
 
             case Target.SELF:
+                
                 // Self's target cursors should be shown
-
-                // Give them to gameManager
-
-                // Swift to next routine : wait for confirm order
                 break;
         }
 
+        // Give actual targets to gameManager
+        gameManager.SetAction(skillManager.character, skillManager, actualTargets);
+
+
         // Go to next step : wait for comfirm action
-        gameManager.turnStep = GameManager.TurnStep.ConfirmCommand;
+
     }
 
     // Check the character's currentPosition if character can cast the selected skill
@@ -108,7 +107,7 @@ public class SkillTarget : MonoBehaviour
             return false;
         }
 
-        if (!character.isActive)
+        if (!skillManager.character.isActive)
         {
             // Show Skill Information
             return false;
@@ -118,7 +117,7 @@ public class SkillTarget : MonoBehaviour
         {
             for (int i = 0; i < availablePos.Length; i++)
             {
-                if (availablePos[character.currentPosition - 1])
+                if (availablePos[skillManager.character.currentPosition - 1])
                 {
                     return true;
                 }
@@ -128,16 +127,11 @@ public class SkillTarget : MonoBehaviour
         return false;
     }
 
-    void ResetDraw()
+    public void ResetDraw()
     {
         foreach(var t in actualTargets)
         {
             t.GetComponent<Enemies>().targetCursor.SetActive(false);
         }
-
-        actualTargets.Clear();
-
-        gameManager.commandBtn.SetActive(false);
-        gameManager.turnStep = GameManager.TurnStep.ChooseCommand;
     }
 }

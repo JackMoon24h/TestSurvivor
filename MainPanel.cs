@@ -11,11 +11,11 @@ public class MainPanel : MonoBehaviour
 
     [HideInInspector]public Text[] unitInfo = new Text[18];
     [HideInInspector]public Image thumb;
-    Image skill1;
-    Image skill2;
-    Image skill3;
-    Image skill4;
-    Image skill5;
+    Image skillSprite1;
+    Image skillSprite2;
+    Image skillSprite3;
+    Image skillSprite4;
+    Image skillSprite5;
 
     /*
      * unitInfo[18]
@@ -51,11 +51,12 @@ public class MainPanel : MonoBehaviour
     {
         gameManager = Object.FindObjectOfType<GameManager>().GetComponent<GameManager>();
         thumb = this.transform.GetChild(18).GetComponent<Image>();
-        skill1 = this.transform.GetChild(19).GetComponent<Image>();
-        skill2 = this.transform.GetChild(20).GetComponent<Image>();
-        skill3 = this.transform.GetChild(21).GetComponent<Image>();
-        skill4 = this.transform.GetChild(22).GetComponent<Image>();
-        skill5 = this.transform.GetChild(23).GetComponent<Image>();
+
+        skillSprite1 = this.transform.GetChild(19).GetComponent<Image>();
+        skillSprite2 = this.transform.GetChild(20).GetComponent<Image>();
+        skillSprite3 = this.transform.GetChild(21).GetComponent<Image>();
+        skillSprite4 = this.transform.GetChild(22).GetComponent<Image>();
+        skillSprite5 = this.transform.GetChild(23).GetComponent<Image>();
 
         for (int i = 0; i < unitInfo.Length; i++)
         {
@@ -67,18 +68,22 @@ public class MainPanel : MonoBehaviour
     public void AssignCharacter(GameObject child)
     {
         character = child.GetComponent<Character>();
-        CreateImage(character);
+        UpdateThumb(character);
+        AssignSkill(character);
     }
 
-    // Create character's thumb, skill images which will be displayed in the panel
-    public void CreateImage(Character target)
+    public void UpdateThumb(Character target)
     {
         thumb.sprite = target.thumbImage;
-        skill1.sprite = target.skillSprite1;
-        skill2.sprite = target.skillSprite2;
-        skill3.sprite = target.skillSprite3;
-        skill4.sprite = target.skillSprite4;
-        skill5.sprite = target.skillSprite5;
+    }
+
+    public void AssignSkill(Character target)
+    {
+        skillSprite1.sprite = target.skillSprite1;
+        skillSprite2.sprite = target.skillSprite2;
+        skillSprite3.sprite = target.skillSprite3;
+        skillSprite4.sprite = target.skillSprite4;
+        skillSprite5.sprite = target.skillSprite5;
     }
 
     public void UpdatePanel()
@@ -101,6 +106,11 @@ public class MainPanel : MonoBehaviour
         unitInfo[15].text = character.DeathBlow.ToString();
         unitInfo[16].text = character.Name;
         unitInfo[17].text = character.job.ToString();
+    }
+
+    public void CastSkill(int skillNum)
+    {
+        character.GetSkill(skillNum).OnClickEnter();
     }
 
 }
