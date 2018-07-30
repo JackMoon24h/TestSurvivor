@@ -6,8 +6,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(MaskableGraphic))]
 public class ScreenFader : MonoBehaviour 
 {
-    public Color solidColor = new Color(128f, 0f, 0f, 255f);
-
+    public Color solidColor = new Color(80f, 0f, 0f, 255f);
     public Color clearColor = new Color(1f, 1f, 1f, 0f);
 
     public float delay = 0.5f;

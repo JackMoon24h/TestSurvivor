@@ -10,8 +10,6 @@ public class Skill : MonoBehaviour
     EnemySquadManager enemySquadManager;
 
     public Character character;
-    public Sprite image;
-
     public SkillTarget skillTarget;
     public SkillEffect skillEffect;
 
@@ -19,8 +17,8 @@ public class Skill : MonoBehaviour
     public string skillName;
     public string description;
 
-    int level = 1;
-
+    public int level = 1;
+    public int skillNum;
 
     // Use this for initialization
     void Start () 
