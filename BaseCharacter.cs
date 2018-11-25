@@ -2,52 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Unit : MonoBehaviour 
+[RequireComponent(typeof(CharacterAction))]
+public class BaseCharacter : MonoBehaviour 
 {
-    public enum Job
-    {
-        Thug,
-        Soldier,
-        Thief,
-        Nurse
-    }
-
-    public enum PhysicalState
-    {
-        Normal,
-        Buff,
-        Bleed,
-        Infected,
-        Stunned
-    }
-
-    public enum PsychologicalState
-    {
-        Idle,
-        Broken,
-        Virtue
-    }
-
-    // Enum
-    public Job job;
-    public PhysicalState physicalState = PhysicalState.Normal;
-    public PsychologicalState psychologicalState = PsychologicalState.Idle;
-
-    // Reference
+    // Ref
+    CharacterAction characterAction;
     public BoxCollider2D col;
 
-    // Assign them in Inspecter
-    public GameObject cursor;
-    public GameObject targetCursor;
+    [SerializeField]
+    int m_position;
+    public int Position { get { return m_position; } set { m_position = value; } }
 
-    // Status
-    public int currentPosition;
+    // Main States
     public bool isActive = false;
-    public bool isTarget = false;
     public bool isDead = false;
 
     // Parameters
-
     protected int m_level;
     public int Level { get { return m_level; } set { m_level = value; } }
 
@@ -108,64 +78,72 @@ public class Unit : MonoBehaviour
     protected float m_deathBlow;
     public float DeathBlow { get { return m_deathBlow; } set { m_deathBlow = value; } }
 
-    // Ability
-    public List<Ability> abilitySlots = new List<Ability>();
-    public Ability ability1;
-    public Ability ability2;
-    public Ability ability3;
-    public Ability ability4;
-    public Ability defaultAbility;
-
-    // Images
-    public Sprite thumbSprite;
-
-    // Use this for initialization
-
-    private void Awake()
+    public enum Job
     {
-        col = this.GetComponent<BoxCollider2D>();
-        cursor = this.transform.GetChild(1).gameObject;
-        targetCursor = this.transform.GetChild(2).gameObject;
+        Thug,
+        Soldier,
+        Thief,
+        Nurse
     }
 
-    void Start () 
-	{
+    public enum PhysicalState
+    {
+        Normal,
+        Buff,
+        Bleed,
+        Infected,
+        Stunned
+    }
 
+    public enum PsychologicalState
+    {
+        Stable,
+        Unstable,
+        Broken,
+        Virtue
+    }
+
+    // Enum
+    public Job job;
+    public PhysicalState physicalState = PhysicalState.Normal;
+    public PsychologicalState psychologicalState = PsychologicalState.Stable;
+
+    // Use this for initialization
+    protected virtual void Start () 
+    {
+        characterAction = GetComponent<CharacterAction>();
+        col = GetComponent<BoxCollider2D>();
 	}
 	
 	// Update is called once per frame
-	void Update () 
-	{
-		
+	protected virtual void Update () 
+    {
+        Move();
 	}
 
-    public void SetActive(bool state)
+    public void Act()
     {
-        this.cursor.SetActive(state);
-        this.isActive = state;
-    }
-
-    public void SetAsTarget(bool state)
-    {
-        this.targetCursor.SetActive(state);
-        this.isTarget = state;
-    }
-
-    public Ability GetAbilityByNumber(int number)
-    {
-        if (this.abilitySlots[number - 1] != null)
+        if (Commander.instance.IsActing || !Commander.instance.IsBattle)
         {
-            return this.abilitySlots[number - 1];
+            return;
+        }
+        characterAction.Shoot();
+    }
+
+    void Move()
+    {
+        if (PlayerManager.instance.isMoving)
+        {
+            characterAction.MoveForwardAction();
+        }
+        else if (PlayerManager.instance.isRetreating)
+        {
+            characterAction.MoveBackWardAction();
         }
         else
         {
-            return null;
+            characterAction.StopAction();
         }
     }
-
-    public Ability GetAbilityByClick()
-    {
-        
-        return null;
-    }
+    
 }

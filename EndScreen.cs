@@ -5,16 +5,16 @@ using UnityEngine.PostProcessing;
 
 public class EndScreen : MonoBehaviour 
 {
-    public PostProcessingProfile blurProfile;
+    public PostProcessingProfile endBlurProfile;
     public PostProcessingProfile defaultProfile;
 
     public PostProcessingBehaviour cameraPostProcess;
 
-    public void EnableCameraBlur(bool state)
+    public void EnableScreenBlur(bool state)
     {
-        if(cameraPostProcess != null && blurProfile != null && defaultProfile != null)
+        if(cameraPostProcess != null && endBlurProfile != null && defaultProfile != null)
         {
-            cameraPostProcess.profile = (state) ? blurProfile : defaultProfile;
+            cameraPostProcess.profile = (state) ? endBlurProfile : defaultProfile;
         }
     }
 }
