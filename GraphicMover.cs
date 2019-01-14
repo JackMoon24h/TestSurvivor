@@ -6,7 +6,8 @@ public enum GraphicMoverMode
 {
     MoveTo,
     ScaleTo,
-    MoveFrom
+    MoveFrom,
+    MoveInOut
 }
 
 public class GraphicMover : MonoBehaviour 
@@ -19,6 +20,7 @@ public class GraphicMover : MonoBehaviour
     public float delay = 0f;
     public iTween.LoopType loopType = iTween.LoopType.none;
     public iTween.EaseType easeType = iTween.EaseType.easeOutExpo;
+    public float moveMixedWaitTime = 2f;
 
     private void Awake()
     {
@@ -65,6 +67,12 @@ public class GraphicMover : MonoBehaviour
                     transform.localScale = startXform.localScale;
                 }
                 break;
+            case GraphicMoverMode.MoveInOut:
+                if (startXform != null)
+                {
+                    transform.position = startXform.position;
+                }
+                break;
         }
     }
 
@@ -99,6 +107,33 @@ public class GraphicMover : MonoBehaviour
                     "looptype", loopType
                 ));
                 break;
+            case GraphicMoverMode.MoveInOut:
+                StartCoroutine(MoveMixedRoutine());
+                break;
         }
+    }
+
+    IEnumerator MoveMixedRoutine()
+    {
+        iTween.MoveTo(gameObject, iTween.Hash(
+            "position", endXform.position,
+            "time", moveTime,
+            "delay", delay,
+            "easetype", easeType,
+            "looptype", loopType
+        ));
+
+        yield return new WaitForSeconds(moveMixedWaitTime);
+
+        iTween.MoveTo(gameObject, iTween.Hash(
+            "position", startXform.position,
+            "time", moveTime,
+            "delay", delay,
+            "easetype", easeType,
+            "looptype", loopType
+        ));
+
+        yield return new WaitForSeconds(moveTime + delay + 0.1f);
+        Commander.instance.narrator.IsNarrating = false;
     }
 }
