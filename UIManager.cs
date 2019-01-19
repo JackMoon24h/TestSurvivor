@@ -102,7 +102,6 @@ public class UIManager : MonoBehaviour
         {
             if (EnemyManager.instance.characterList[i])
             {
-                Debug.Log("enemy list ui has been implemented");
                 enemyListIMG[i].color = eExistColor;
             }
             else

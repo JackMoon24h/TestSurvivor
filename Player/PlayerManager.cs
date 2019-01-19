@@ -10,6 +10,7 @@ public class PlayerManager : MonoBehaviour
     public PlayerInput playerInput;
     public PlayerMover playerMover;
     public BoxCollider2D finder;
+    public MovePosition swapBtn;
 
     public static float spacing = -3.5f;
     public static readonly Vector2[] positions =
@@ -24,6 +25,7 @@ public class PlayerManager : MonoBehaviour
     public bool isMovingForward = false;
     public bool isMovingBackWard = false;
     public bool isReached = false;
+    public float swapSpeed = 0.6f;
 
 
     public GameObject[] characterPrefabs = new GameObject[4];
@@ -41,7 +43,7 @@ public class PlayerManager : MonoBehaviour
         playerMover = GetComponent<PlayerMover>();
         playerInput = GetComponent<PlayerInput>();
         finder = GetComponent<BoxCollider2D>();
-
+        swapBtn = Object.FindObjectOfType<MovePosition>().GetComponent<MovePosition>();
 
     }
 
@@ -60,6 +62,7 @@ public class PlayerManager : MonoBehaviour
                 if(characterPrefabs[i] != null)
                 {
                     var survivor = Instantiate(characterPrefabs[i], Vector3.zero, Quaternion.identity);
+                    survivor.name = "Survivor " + (i+1);
                     survivor.transform.SetParent(this.transform);
                     characterList.Add(survivor.GetComponent<BaseCharacter>());
                 }
@@ -77,6 +80,11 @@ public class PlayerManager : MonoBehaviour
 
     private void Update()
     {
+        if(this.swapBtn.isBtnPressed)
+        {
+            // Don't move if move button is being pressed
+            return;
+        }
         playerInput.GetKeyInput();
 
         if(playerInput.H > 0)
@@ -118,12 +126,28 @@ public class PlayerManager : MonoBehaviour
     // Initialize ()
     public void SetPositions(List<BaseCharacter> cList)
     {
+        if (Commander.instance.IsBattle)
+        {
+            Commander.instance.IsActing = true;
+        }
+
         for (int i = 0; i < cList.Count; i++)
         {
-            if(cList[i] != null)
+            if(cList[i].transform.localPosition.x != PlayerManager.positions[i].x)
             {
+                // Move GameObjects
+                iTween.MoveTo(cList[i].gameObject, iTween.Hash(
+                    "x", PlayerManager.positions[i].x,
+                    "time", swapSpeed,
+                    "isLocal", true,
+                    "easetype", iTween.EaseType.easeOutExpo
+                ));
+
+                // Set Position
                 cList[i].Position = i + 1;
-                cList[i].transform.localPosition = PlayerManager.positions[i];
+
+                // Change its transform in the hierarchy
+                cList[i].transform.SetSiblingIndex(i);
             }
         }
     }
@@ -148,10 +172,12 @@ public class PlayerManager : MonoBehaviour
         {
             activeCharacter.isActive = false;
             activeCharacter.cursor.SetActive(false);
+            activeCharacter.targetCursor.SetActive(false);
         }
 
         // Set New ActiveCharacter
         activeCharacter = target;
+
         activeCharacter.isActive = true;
         activeCharacter.cursor.SetActive(true);
 
@@ -170,8 +196,10 @@ public class PlayerManager : MonoBehaviour
         {
             activeCharacter.isActive = false;
             activeCharacter.cursor.SetActive(false);
+            activeCharacter.targetCursor.SetActive(false);
         }
         activeCharacter = target;
+
         activeCharacter.isActive = true;
         activeCharacter.cursor.SetActive(true);
 
@@ -204,7 +232,13 @@ public class PlayerManager : MonoBehaviour
 
     public void DrawTargets(BaseSkill activeSkill)
     {
-        switch(activeSkill.skillRange)
+
+        if(this.swapBtn.isBtnPressed)
+        {
+            ClearSwapTargets();
+        }
+
+        switch (activeSkill.skillRange)
         {
             case SkillRange.Unfriendly:
 
@@ -279,12 +313,22 @@ public class PlayerManager : MonoBehaviour
         friendlyTargets.Clear();
     }
 
+    void ClearSwapTargets()
+    {
+        foreach(var t in characterList)
+        {
+            t.isSwapTarget = false;
+            t.targetCursor.SetActive(false);
+        }
+        swapBtn.isBtnPressed = false;
+    }
+
     public void ConfirmAllyTarget(BaseCharacter selectedTarget)
     {
-        Commander.instance.turnStateMachine.HasConfirmedTargets = true;
-        Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.DoAction;
+        Commander.instance.turnStateMachine.HasConfirmedCommand = true;
+        UIManager.instance.BeginUIShield();
 
-        switch(activeCharacter.activeCommand.skillType)
+        switch (activeCharacter.activeCommand.skillType)
         {
             case SkillType.SingleTarget:
                 activeCharacter.CastToAlly(activeCharacter.activeCommand, selectedTarget);
@@ -305,8 +349,7 @@ public class PlayerManager : MonoBehaviour
 
     public void ConfirmEnemyTarget(BaseEnemy selectedTarget)
     {
-        Commander.instance.turnStateMachine.HasConfirmedTargets = true;
-        Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.DoAction;
+        Commander.instance.turnStateMachine.HasConfirmedCommand = true;
         UIManager.instance.BeginUIShield();
 
         switch (activeCharacter.activeCommand.skillType)
@@ -325,5 +368,73 @@ public class PlayerManager : MonoBehaviour
             default:
                 break;
         }
+    }
+
+    // Swap Positions
+
+    public void Swap(List<BaseCharacter> sList, int activePos, int targetPos)
+    {
+        StartCoroutine(SwapRoutine(sList, activePos, targetPos));
+    }
+
+    IEnumerator SwapRoutine(List<BaseCharacter> sList, int activePos, int targetPos)
+    {
+        if(Commander.instance.IsBattle)
+        {
+            Commander.instance.turnStateMachine.HasConfirmedCommand = true;
+        }
+
+        UIManager.instance.BeginUIShield();
+        // 1. Update character list
+        var t = sList[activePos - 1];
+        sList[activePos - 1] = sList[targetPos - 1];
+        sList[targetPos - 1] = t;
+
+        SetPositions(sList);
+
+        ClearSwapTargets();
+
+        yield return new WaitForSeconds(swapSpeed);
+
+        if (Commander.instance.IsBattle)
+        {
+            Commander.instance.IsActing = false;
+        }
+    }
+
+    // This function will be called by button clicking
+    public void DrawSwapPositions()
+    {
+        ClearUnfriendlyTargets();
+        ClearFriendlyTargets();
+
+        var frontPos = activeCharacter.Position - 1;
+        var backPos = activeCharacter.Position + 1;
+
+        if(frontPos > 0)
+        {
+            var target = GetCharacterAtPos(frontPos);
+            target.targetCursor.SetActive(true);
+            target.isSwapTarget = true;
+        }
+
+        if(backPos < 5)
+        {
+            var target = GetCharacterAtPos(backPos);
+            target.targetCursor.SetActive(true);
+            target.isSwapTarget = true;
+        }
+
+        if(Commander.instance.IsBattle)
+        {
+            Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.ConfirmTarget;
+        }
+
+        PlayerManager.instance.activeCharacter.activeCommand = null;
+    }
+
+    public void CancelSwap()
+    {
+        ClearSwapTargets();
     }
 }

@@ -101,10 +101,6 @@ public class SkillDisplay : MonoBehaviour
             PlayerManager.instance.DrawTargets(thisSkill);
             PlayerManager.instance.activeCharacter.activeCommand = thisSkill;
         }
-        else
-        {
-            Debug.Log("This skill is not available");
-        }
     }
 
     public void SetAvailableSkills(BaseCharacter target)
@@ -132,12 +128,10 @@ public class SkillDisplay : MonoBehaviour
                     if(temp > 0)
                     {
                         m_isAvailable = true;
-                        Debug.Log(temp + " targets exist");
                     }
                     else
                     {
                         m_isAvailable = false;
-                        Debug.Log(temp + " targets exist. So it cannot be available.");
                     }
 
                     break;

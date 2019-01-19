@@ -49,8 +49,20 @@ public class TouchInput : MonoBehaviour
                             if(!Commander.instance.IsBattle)
                             {
                                 var temp = PlayerManager.instance.clickedObject.GetComponent<BaseCharacter>();
-                                PlayerManager.instance.SetActiveCharacter(temp);
-                                Debug.Log("Active Character : " + PlayerManager.instance.activeCharacter.gameObject.name);
+
+                                if(PlayerManager.instance.swapBtn.isBtnPressed && temp.isSwapTarget)
+                                {
+                                    PlayerManager.instance.Swap(PlayerManager.instance.characterList, PlayerManager.instance.activeCharacter.Position, temp.Position);
+                                }
+                                else if(PlayerManager.instance.swapBtn.isBtnPressed && !temp.isSwapTarget)
+                                {
+                                    // Do Nothing
+                                }
+                                else
+                                {
+                                    PlayerManager.instance.SetActiveCharacter(temp);
+                                    Debug.Log("Active Character : " + PlayerManager.instance.activeCharacter.gameObject.name);
+                                }
                             }
                             else
                             {
@@ -58,6 +70,10 @@ public class TouchInput : MonoBehaviour
                                 if(pTarget.isTargeted)
                                 {
                                     PlayerManager.instance.ConfirmAllyTarget(pTarget);
+                                }
+                                else if (PlayerManager.instance.swapBtn.isBtnPressed && pTarget.isSwapTarget)
+                                {
+                                    PlayerManager.instance.Swap(PlayerManager.instance.characterList, PlayerManager.instance.activeCharacter.Position, pTarget.Position);
                                 }
                             }
                             break;

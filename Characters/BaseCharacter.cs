@@ -33,6 +33,7 @@ public class BaseCharacter : MonoBehaviour
     public bool isActive = false;
     public bool isDead = false;
     public bool isTargeted = false;
+    public bool isSwapTarget = false;
 
     // Images
     public Sprite profileImage;
@@ -270,7 +271,6 @@ public class BaseCharacter : MonoBehaviour
         {
             m_health = 0;
             this.isDead = true;
-            PlayerManager.instance.characterList.RemoveAt(this.Position - 1);
         }
     }
 }

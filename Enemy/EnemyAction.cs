@@ -29,6 +29,16 @@ public class EnemyAction : CharacterAction {
         ));
     }
 
+    protected override void MoveToTargetStage()
+    {
+        body.transform.localPosition = new Vector3(targetMoveSpace, 0, 0);
+
+        iTween.MoveBy(body, iTween.Hash(
+            "x", -targetMoveSpace / 2,
+            "time", moveInTime
+        ));
+    }
+
     // Do nothing
     protected override void Start()
     {

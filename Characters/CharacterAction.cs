@@ -7,16 +7,17 @@ public class CharacterAction : MonoBehaviour {
     protected Animator animator;
     protected GameObject body;
 
-    public bool isEnemy = false;
     public bool isActing = false;
 
 
     public float baseMoveSpace = 1f;
-    public float correctionSpace = 2f;
+    public float correctionSpace = 3f;
+    public float targetMoveSpace = 5f;
     // Calculate later on
     public float moveSpace;
     public float moveInTime;
     public float moveOutTime;
+    //public iTween.EaseType moveEaseType;
 
     public float scaleTime = 0.1f;
     public float readyActionDelay = 0.35f;
@@ -38,6 +39,16 @@ public class CharacterAction : MonoBehaviour {
         // Default Setting
         moveInTime = cameraController.zoomInTime + cameraController.zoomStayTime;
         moveOutTime = cameraController.zoomOutTime;
+    }
+
+    public void TestAct()
+    {
+        Act(ActionType.MainAttack);
+    }
+
+    public void TestHit()
+    {
+        Act(ActionType.Hit);
     }
 
     public void Act(ActionType actionType)
@@ -75,6 +86,7 @@ public class CharacterAction : MonoBehaviour {
     protected virtual IEnumerator ActionRoutine(string action)
     {
         // Zoom the camera
+        baseCharacter.cursor.SetActive(false);
         cameraController.BattleZoomIn();
         subCameraController.BattleZoomIn();
 
@@ -106,16 +118,15 @@ public class CharacterAction : MonoBehaviour {
 
     protected virtual IEnumerator HitRoutine(string action)
     {
+
         SwitchLayer("Actor");
         animator.SetTrigger(action);
 
-
-
-
+        MoveToTargetStage();
 
         yield return new WaitForSeconds(moveInTime);
 
-
+        MoveFromTargetStage();
 
         // Wait until move out action is over, and then reset its transform.position.
         // Wait more than moveOutTime by 0.5 second in order to avoid some transform related bug.
@@ -126,7 +137,25 @@ public class CharacterAction : MonoBehaviour {
         SwitchLayer("Character");
     }
 
+    protected virtual void MoveToTargetStage()
+    {
+        body.transform.localPosition = new Vector3(targetMoveSpace, 0, 0);
 
+        iTween.MoveBy(body, iTween.Hash(
+            "x", -targetMoveSpace / 2,
+            "time", moveInTime
+        ));
+    }
+
+    protected virtual void MoveFromTargetStage()
+    {
+        var towardOriginVector = Vector3.zero - body.transform.localPosition;
+
+        iTween.MoveBy(body, iTween.Hash(
+            "x", towardOriginVector.x,
+            "time", moveOutTime
+        ));
+    }
 
     // ActionRoutine Related
     protected virtual void MoveToStage()
@@ -164,6 +193,11 @@ public class CharacterAction : MonoBehaviour {
     // Apply this method to active unit and its confirmed targets
     public virtual void ReadyAction()
     {
+        if(!Commander.instance.IsBattle)
+        {
+            return;
+        }
+
         Debug.Log(this.gameObject.name + " is ready to act");
         StartCoroutine(ReadyRoutine());
     }

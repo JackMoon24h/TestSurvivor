@@ -25,18 +25,24 @@ public class TurnStateMachine : MonoBehaviour
 
     [Range(1, 9999)]
     [SerializeField]
+    private int m_round = 1;
+    public int Round { get{return m_round;} set{m_round = value;}}
+
+    [Range(1, 8)]
+    [SerializeField]
     private int m_turnCount = 1;
     public int TurnCount { get{return m_turnCount;} set{m_turnCount = value;}}
-
 
     int pSpeedSum;
     int eSpeedSum;
 
-    bool m_HasConfirmedTargets;
-    public bool HasConfirmedTargets{ get{return m_HasConfirmedTargets;} set{m_HasConfirmedTargets = value;}}
+    bool m_hasConfirmedCommand;
+    public bool HasConfirmedCommand { get { return m_hasConfirmedCommand; } set { m_hasConfirmedCommand = value; } }
 
-    bool m_HasHandledEffects;
-    public bool HasHandledEffects { get { return m_HasHandledEffects; } set { m_HasHandledEffects = value; } }
+    bool m_hasHandledEffects;
+    public bool HasHandledEffects { get { return m_hasHandledEffects; } set { m_hasHandledEffects = value; } }
+
+
 
     // Use this for initialization
     void Start () 
@@ -76,6 +82,7 @@ public class TurnStateMachine : MonoBehaviour
     public void Initialize()
     {
         currentTurnState = TurnState.SetActiveUnit;
+        m_round = 1;
         m_turnCount = 1;
 
         pSpeedSum = 0;
@@ -118,10 +125,16 @@ public class TurnStateMachine : MonoBehaviour
     {
         Debug.Log("StartTurnRoutine");
 
+        // For Debugging purpose
+        currentTurn = Turn.PLAYER;
+        var randPos = Random.Range(1, PlayerManager.instance.characterList.Count + 1);
+        PlayerManager.instance.SetActiveCharacterAtPos(randPos);
+
         if (currentTurn == Turn.PLAYER && PlayerManager.instance.activeCharacter)
         {
             currentTurnState = TurnState.WaitForCommand;
             PlayerManager.instance.activeCharacter.characterAction.ReadyAction();
+
         }
         else if (currentTurn == Turn.ENEMY && EnemyManager.instance.activeCharacter)
         {
@@ -142,10 +155,11 @@ public class TurnStateMachine : MonoBehaviour
 
         // Player must choose a command
         // Player can change its command before confirming targets
-        while(!m_HasConfirmedTargets)
+        while(!m_hasConfirmedCommand)
         {
             yield return null;
         }
+        Commander.instance.turnStateMachine.currentTurnState = TurnState.DoAction;
     }
 
     public IEnumerator UpdateTurnRoutine()
@@ -167,14 +181,13 @@ public class TurnStateMachine : MonoBehaviour
 
         // Show Damage or Effect animations
 
-        while(!m_HasHandledEffects)
+        while(!m_hasHandledEffects)
         {
             // For Test
-            yield return new WaitForSeconds(1f);
-            m_HasHandledEffects = true;
+            yield return new WaitForSeconds(0.3f);
+            m_hasHandledEffects = true;
         }
 
-        UIManager.instance.EndUIShield();
     }
 
     public IEnumerator EndTurnRoutine()
@@ -184,14 +197,10 @@ public class TurnStateMachine : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
         // Initialize variables for the next turn
-        m_HasHandledEffects = false;
-        m_HasConfirmedTargets = false;
-
-        // For Debugging purpose
-        currentTurn = Turn.PLAYER;
-        var randPos = Random.Range(1, PlayerManager.instance.characterList.Count + 1);
-        PlayerManager.instance.SetActiveCharacterAtPos(randPos);
+        m_hasHandledEffects = false;
+        m_hasConfirmedCommand = false;
 
         m_turnCount++;
+        UIManager.instance.EndUIShield();
     }
 }

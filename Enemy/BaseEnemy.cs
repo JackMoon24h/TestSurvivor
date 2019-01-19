@@ -121,7 +121,6 @@ public class BaseEnemy : MonoBehaviour
         {
             m_health = 0;
             this.isDead = true;
-            PlayerManager.instance.characterList.RemoveAt(this.Position - 1);
         }
     }
 }

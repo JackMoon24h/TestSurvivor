@@ -1,16 +1,32 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class MovePosition : BaseSkill {
+public class MovePosition : MonoBehaviour 
+{
+    public Button btn;
+    public bool isBtnPressed;
 
 	// Use this for initialization
-	void Start () {
-		
+	void Start () 
+    {
+        btn = GetComponent<Button>();
+
+        btn.onClick.AddListener(OnClickEvent);
 	}
 	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+	void OnClickEvent()
+    {
+        if(isBtnPressed)
+        {
+            // Cancel drawing targets
+            PlayerManager.instance.CancelSwap();
+            return;
+        }
+
+        // DrawTargets
+        PlayerManager.instance.DrawSwapPositions();
+        isBtnPressed = true;
+    }
 }
