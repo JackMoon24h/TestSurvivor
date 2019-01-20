@@ -92,7 +92,7 @@ public class SkillDisplay : MonoBehaviour
         }
     }
 
-    // Called when the command btn is clicked
+    // Called when the command btn is clickeda
     public void OnClickEvent()
     {
         if(m_isAvailable)
@@ -151,7 +151,6 @@ public class SkillDisplay : MonoBehaviour
         }
         else
         {
-            Debug.Log(thisSkillName.text + " : Cast Position Not Available");
             m_isAvailable = false;
         }
 

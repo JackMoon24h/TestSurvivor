@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
     public Color eNotExistColor;
 
     public GameObject UIShield;
+    public bool OnUIShield;
 
     public GameObject actionResultPrefab;
 
@@ -72,9 +73,6 @@ public class UIManager : MonoBehaviour
         {
             sd.UpdateSkillInfo(updateTarget);
         }
-
-        SetPlayerListUI();
-        SetEnemyListtUI();
     }
 
     public void SetPlayerListUI()
@@ -116,6 +114,7 @@ public class UIManager : MonoBehaviour
         if(UIShield != null)
         {
             UIShield.SetActive(true);
+            OnUIShield = true;
         }
     }
 
@@ -124,6 +123,7 @@ public class UIManager : MonoBehaviour
         if(UIShield != null)
         {
             UIShield.SetActive(false);
+            OnUIShield = false;
         }
     }
 

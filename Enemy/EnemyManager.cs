@@ -91,25 +91,48 @@ public class EnemyManager : MonoBehaviour
     {
         var target = GetCharacterAtPos(pos);
 
-        // Do nothing if selected character is current active character
-        if (activeCharacter == target)
-        {
-            return;
-        }
-        // If active character exists, turn off its active boolean value
+        SetActiveCharacter(target);
+    }
+
+    public void SetActiveCharacter(BaseEnemy target)
+    {
         if (activeCharacter)
         {
-            activeCharacter.isActive = false;
+            ClearActiveCharacter();
         }
 
+        if (PlayerManager.instance.activeCharacter)
+        {
+            PlayerManager.instance.ClearActiveCharacter();
+        }
         activeCharacter = target;
+
         activeCharacter.isActive = true;
         activeCharacter.cursor.SetActive(true);
+
+        Commander.instance.narrator.Narrate(activeCharacter.Name + " is attacking...!");
     }
 
     public BaseEnemy GetCharacterAtPos(int number)
     {
         // It can return null if the character at pos is dead
         return characterList[number - 1];
+    }
+
+    public void ClearActiveCharacter()
+    {
+        activeCharacter.isActive = false;
+        activeCharacter.cursor.SetActive(false);
+        activeCharacter.targetCursor.SetActive(false);
+
+        // After completing necessary things, then clear activeCharacter to null
+        activeCharacter = null;
+    }
+
+    public void PlayTurn()
+    {
+        // Choose Command
+        // Select Target
+        // Do Action
     }
 }

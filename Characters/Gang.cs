@@ -40,6 +40,7 @@ public class Gang : BaseCharacter
         m_virtue = 5;
         m_stressRes = 22;
         m_bleedRes = 25;
+        m_infectRes = 18;
         m_stunRes = 18;
         m_moveRes = 17;
         m_deathBlow = 14;

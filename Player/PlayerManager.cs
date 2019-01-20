@@ -153,36 +153,11 @@ public class PlayerManager : MonoBehaviour
     }
 
 
-    // Can be called 3 ways
-    // 1. Initialize
-    // 2. When player select a character when it is not in the battle
-    // 3. AI chooses the active character by turn order
     public void SetActiveCharacterAtPos(int pos)
     {
         var target = GetCharacterAtPos(pos);
 
-        // Do nothing if selected character is current active character
-        if (!Commander.instance.IsBattle && activeCharacter == target)
-        {
-            return;
-        }
-
-        // Set existing activeCharacter to inActive. In the beginning there is no existing active character.
-        if(activeCharacter)
-        {
-            activeCharacter.isActive = false;
-            activeCharacter.cursor.SetActive(false);
-            activeCharacter.targetCursor.SetActive(false);
-        }
-
-        // Set New ActiveCharacter
-        activeCharacter = target;
-
-        activeCharacter.isActive = true;
-        activeCharacter.cursor.SetActive(true);
-
-        // Update UI Panel
-        UIManager.instance.UpdateUIPanel(activeCharacter);
+        SetActiveCharacter(target);
     }
 
     public void SetActiveCharacter(BaseCharacter target)
@@ -194,9 +169,12 @@ public class PlayerManager : MonoBehaviour
 
         if(activeCharacter)
         {
-            activeCharacter.isActive = false;
-            activeCharacter.cursor.SetActive(false);
-            activeCharacter.targetCursor.SetActive(false);
+            ClearActiveCharacter();
+        }
+
+        if(EnemyManager.instance.activeCharacter)
+        {
+            EnemyManager.instance.ClearActiveCharacter();
         }
         activeCharacter = target;
 
@@ -211,6 +189,17 @@ public class PlayerManager : MonoBehaviour
     {
         // It can return null if the character at pos is dead
         return characterList[number - 1];
+    }
+
+    public void ClearActiveCharacter()
+    {
+
+        activeCharacter.isActive = false;
+        activeCharacter.cursor.SetActive(false);
+        activeCharacter.targetCursor.SetActive(false);
+
+        // After completing necessary things, then clear activeCharacter to null
+        activeCharacter = null;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -399,6 +388,10 @@ public class PlayerManager : MonoBehaviour
         if (Commander.instance.IsBattle)
         {
             Commander.instance.IsActing = false;
+        }
+        else
+        {
+            UIManager.instance.EndUIShield();
         }
     }
 

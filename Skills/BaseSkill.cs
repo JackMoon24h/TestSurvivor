@@ -36,7 +36,7 @@ public class BaseSkill : MonoBehaviour
     public int level;
     public Sprite skillIcon;
     public BaseCharacter.Job belongTo;
-    private GameObject particleEffect; // needs assigned when we create the skill
+    public GameObject[] bloodEffects; // needs assigned when we create the skill
 
     // Unique Mechanism
     public SkillType skillType;
@@ -70,5 +70,6 @@ public class BaseSkill : MonoBehaviour
     public virtual void Excute(GameObject target)
     {
         Debug.Log("Skill Generated");
+        // Instantiate common damage effects
     }
 }

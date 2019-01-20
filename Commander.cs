@@ -44,6 +44,7 @@ public class Commander : MonoBehaviour
     bool m_isActing = false;
     public bool IsActing { get { return m_isActing; } set { m_isActing = value; } }
 
+    public List<Actor> actorList = new List<Actor>();
 
     // Unity Events
     public UnityEvent setupEvent;
@@ -153,8 +154,7 @@ public class Commander : MonoBehaviour
         {
             yield return null;
 
-            m_isGameOver = IsWinner(); // true if the player has reached the goal
-
+            m_isGameOver = IsReachedGoal();
         }
 
         Debug.Log("WIN! ===================");
@@ -199,12 +199,10 @@ public class Commander : MonoBehaviour
         touchInput.InputEnabled = false;
         UIManager.instance.BeginUIShield();
 
+        PlayerManager.instance.ClearActiveCharacter();
         EnemyManager.instance.Deploy(t);
 
         Destroy(t.gameObject);
-
-        // Battle setup
-
 
         // Show battle screen
 
@@ -232,34 +230,41 @@ public class Commander : MonoBehaviour
         }
 
         yield return new WaitForSeconds(initBattleDelay);
+
         turnStateMachine.Initialize();
-
-        while (IsBattle)
+        while (m_isBattle)
         {
-            yield return StartCoroutine(turnStateMachine.StartTurnRoutine());
-            yield return StartCoroutine(turnStateMachine.UpdateTurnRoutine());
-            yield return StartCoroutine(turnStateMachine.EndTurnRoutine());
-
-            yield return new WaitForSeconds(0.5f);
-
-            // Win or Lose conditions can trigger IsBattle to false
-            switch(turnStateMachine.currentTurn)
-            {
-                case TurnStateMachine.Turn.PLAYER:
-                    IsBattle = AreEnemiesAllDead();
-                    break;
-                case TurnStateMachine.Turn.ENEMY:
-                    IsBattle = AreEnemiesAllDead();
-                    break;
-            }
-            Debug.Log("Enemy has " + EnemyManager.instance.characterList.Count + " units left");
-            Debug.Log("Player has " + PlayerManager.instance.characterList.Count + " units left");
+            yield return StartCoroutine(turnStateMachine.RoundRoutine());
         }
 
+        yield return new WaitForSeconds(0.5f);
+
+        // WIN BATTLE
         FinishBattle();
     }
 
-   
+    public void LoseLevel()
+    {
+        StartCoroutine(LoseLevelRoutine());
+    }
+
+    IEnumerator LoseLevelRoutine()
+    {
+        m_isGameOver = true;
+        narrator.Narrate("Your team failed to survive");
+
+        yield return new WaitForSeconds(1.5f);
+
+        if(loseLevelEvent != null)
+        {
+            loseLevelEvent.Invoke();
+        }
+
+        yield return new WaitForSeconds(2f);
+        Debug.Log("Game Over !===================");
+
+        RestartLevel();
+    }
 
     void FinishBattle()
     {
@@ -271,39 +276,36 @@ public class Commander : MonoBehaviour
             t.IsAvailable = true;
             t.btn.interactable = true;
         }
+
+        actorList.Clear();
         EnableInput(true);
     }
 
     // Check if player has won the battle
-    bool AreEnemiesAllDead()
+    public bool AreEnemiesAllDead()
     {
         // Check with list number
         if (EnemyManager.instance.characterList.Count == 0)
         {
-            return false; // It should be false here in order to assign this value to boolean <IsBattle>
+            return true;
         }
-        return true;
+        return false;
     }
 
-    bool AreCharactersAllDead()
+    public bool AreCharactersAllDead()
     {
         // Check with list number
         if (PlayerManager.instance.characterList.Count == 0)
         {
-            return false; // It should be false here in order to assign this value to boolean <IsBattle>
+            return true;
         }
-        return true;
+        return false;
     }
 
     // Check if player has reached the goal
-    bool IsWinner()
+    bool IsReachedGoal()
     {
-        if(PlayerManager.instance.isReached)
-        {
-            return true;
-        }
-
-        return false;
+        return PlayerManager.instance.isReached;
     }
 
     public void PlayLevel()
@@ -318,8 +320,10 @@ public class Commander : MonoBehaviour
         SceneManager.LoadScene(scene.name);
     }
 
-    void DeployEnemy(Trigger battleTrigger)
+    public void GetCurrentActors()
     {
-
+        actorList.Clear();
+        var actors = Object.FindObjectsOfType<Actor>();
+        actorList.AddRange(actors);
     }
 }

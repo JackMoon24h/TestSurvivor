@@ -28,13 +28,17 @@ public class TurnStateMachine : MonoBehaviour
     private int m_round = 1;
     public int Round { get{return m_round;} set{m_round = value;}}
 
-    [Range(1, 8)]
+    [Range(1, 9999)]
     [SerializeField]
     private int m_turnCount = 1;
     public int TurnCount { get{return m_turnCount;} set{m_turnCount = value;}}
 
-    int pSpeedSum;
-    int eSpeedSum;
+    private int m_turnsInRound;
+    public int TurnsInRound { get { return m_turnsInRound; } set { m_turnsInRound = value; } }
+
+    private List<int> m_initialSPDmode = new List<int>(){ 1, 2, 3, 4, 5, 6, 7, 8 };
+
+    public List<Actor> queue = new List<Actor>();
 
     bool m_hasConfirmedCommand;
     public bool HasConfirmedCommand { get { return m_hasConfirmedCommand; } set { m_hasConfirmedCommand = value; } }
@@ -42,13 +46,6 @@ public class TurnStateMachine : MonoBehaviour
     bool m_hasHandledEffects;
     public bool HasHandledEffects { get { return m_hasHandledEffects; } set { m_hasHandledEffects = value; } }
 
-
-
-    // Use this for initialization
-    void Start () 
-    {
-		
-	}
 	
 	// Update is called once per frame
 	void Update () 
@@ -81,71 +78,57 @@ public class TurnStateMachine : MonoBehaviour
 
     public void Initialize()
     {
+        Commander.instance.GetCurrentActors();
         currentTurnState = TurnState.SetActiveUnit;
         m_round = 1;
         m_turnCount = 1;
 
-        pSpeedSum = 0;
-        eSpeedSum = 0;
+        // Set Queue for round 1
+        queue = SetQueue(Commander.instance.actorList);
+        m_turnsInRound = queue.Count;
 
-        for(int i = 0; i < PlayerManager.instance.characterList.Count; i++)
-        {
-            pSpeedSum += PlayerManager.instance.characterList[i].Speed;
-        }
+        // For debugging purpose. Can be deleted later on.
+        UIManager.instance.SetEnemyListtUI();
+        UIManager.instance.SetPlayerListUI();
+    }
 
-        for (int i = 0; i < EnemyManager.instance.characterList.Count; i++)
-        {
-            eSpeedSum += EnemyManager.instance.characterList[i].Speed;
-        }
+    // All current actors can act 1 time per 1 round
+    public IEnumerator RoundRoutine()
+    {
+        yield return StartCoroutine(StartTurnRoutine()); // User Input or Enemy AI selection
+        yield return StartCoroutine(UpdateTurnRoutine()); // Action
+        yield return StartCoroutine(EndTurnRoutine()); // Calculation
+    }
 
-        if(pSpeedSum >= eSpeedSum)
+
+
+    IEnumerator StartTurnRoutine()
+    {
+        Debug.Log("StartTurnRoutine : Turn / Round " + m_turnCount + " / " + m_round);
+
+        // Get Active Character from queue
+        if(queue[m_turnCount - 1].gameObject.tag == "Enemy")
         {
-            // Player's turn
-            currentTurn = Turn.PLAYER;
-            var randPos = Random.Range(1, PlayerManager.instance.characterList.Count + 1);
-            PlayerManager.instance.SetActiveCharacterAtPos(randPos);
-        }
-        else
-        {
-            // Enemy's turn
+            // Enemy turn
             currentTurn = Turn.ENEMY;
-            var randPos = Random.Range(1, EnemyManager.instance.characterList.Count + 1);
-            EnemyManager.instance.SetActiveCharacterAtPos(randPos);
-        }
-    }
+            var enemy = (BaseEnemy)queue[m_turnCount - 1];
+            enemy.enemyAction.ReadyAction();
+            EnemyManager.instance.SetActiveCharacter(enemy);
 
-    public IEnumerator TurnRoutine()
-    {
-        yield return new WaitForSeconds(1f);
-    }
+            yield return new WaitForSeconds(0.5f);
 
-
-
-    public IEnumerator StartTurnRoutine()
-    {
-        Debug.Log("StartTurnRoutine");
-
-        // For Debugging purpose
-        currentTurn = Turn.PLAYER;
-        var randPos = Random.Range(1, PlayerManager.instance.characterList.Count + 1);
-        PlayerManager.instance.SetActiveCharacterAtPos(randPos);
-
-        if (currentTurn == Turn.PLAYER && PlayerManager.instance.activeCharacter)
-        {
-            currentTurnState = TurnState.WaitForCommand;
-            PlayerManager.instance.activeCharacter.characterAction.ReadyAction();
-
-        }
-        else if (currentTurn == Turn.ENEMY && EnemyManager.instance.activeCharacter)
-        {
-            Debug.Log("Enemy's turn");
-            // Excute AI Play
+            EnemyManager.instance.PlayTurn();
         }
         else
         {
-            Debug.LogWarning("No active character found");
+            // Player turn
+            currentTurn = Turn.PLAYER;
+            var player = (BaseCharacter)queue[m_turnCount - 1];
+            player.characterAction.ReadyAction();
+            PlayerManager.instance.SetActiveCharacter(player);
         }
 
+        currentTurnState = TurnState.WaitForCommand;
 
         yield return new WaitForSeconds(0.5f);
 
@@ -162,7 +145,7 @@ public class TurnStateMachine : MonoBehaviour
         Commander.instance.turnStateMachine.currentTurnState = TurnState.DoAction;
     }
 
-    public IEnumerator UpdateTurnRoutine()
+    IEnumerator UpdateTurnRoutine()
     {
         Debug.Log("UpdateTurnRoutine");
         if (Commander.instance.actionEvent != null)
@@ -188,9 +171,12 @@ public class TurnStateMachine : MonoBehaviour
             m_hasHandledEffects = true;
         }
 
+        // For debugging purpose. Can be deleted later on.
+        UIManager.instance.SetEnemyListtUI();
+        UIManager.instance.SetPlayerListUI();
     }
 
-    public IEnumerator EndTurnRoutine()
+    IEnumerator EndTurnRoutine()
     {
         Debug.Log("EndTurnRoutine");
         currentTurnState = TurnState.FinishTurn;
@@ -200,7 +186,94 @@ public class TurnStateMachine : MonoBehaviour
         m_hasHandledEffects = false;
         m_hasConfirmedCommand = false;
 
+        Debug.Log("Enemy has " + EnemyManager.instance.characterList.Count + " units left");
+        Debug.Log("Player has " + PlayerManager.instance.characterList.Count + " units left");
+
+        // Check if it meets battle over conditions after every turn
+
+        if (currentTurn == Turn.PLAYER && Commander.instance.AreEnemiesAllDead())
+        {
+            // Won. Stop coroutine and finish battle.
+            Commander.instance.IsBattle = false;
+            yield break;
+        }
+        else if (currentTurn == Turn.ENEMY && Commander.instance.AreCharactersAllDead())
+        {
+            // Lose.
+            Commander.instance.LoseLevel();
+        }
+
         m_turnCount++;
+        m_turnsInRound = queue.Count;
+
+        if(m_turnCount > m_turnsInRound)
+        {
+            m_turnCount = 1;
+            m_round++;
+            UpdateRound();
+        }
+
         UIManager.instance.EndUIShield();
+        currentTurnState = TurnState.SetActiveUnit;
+    }
+
+    void UpdateRound()
+    {
+        Commander.instance.GetCurrentActors();
+
+        // Set Queue for next round
+        queue = SetQueue(Commander.instance.actorList);
+    }
+
+    // It sorts given 2 lists
+    public static void DarkSort(List<int> spdList, List<Actor> aList)
+    {
+        int n = spdList.Count;
+
+        for(int i = 0; i < n - 1; i++)
+        {
+            for(int j = 0; j < n - i - 1; j ++)
+            {
+                if(spdList[j] < spdList[j + 1])
+                {
+                    // Swap
+                    int temp = spdList[j];
+                    spdList[j] = spdList[j + 1];
+                    spdList[j + 1] = temp;
+
+                    // If swap spdArray, then swap actor arrays too
+                    Actor tempActor = aList[j];
+                    aList[j] = aList[j + 1];
+                    aList[j + 1] = tempActor;
+                }
+            }
+        }
+    }
+
+    public List<Actor> SetQueue(List<Actor> aList)
+    {
+        List<int> spdList = new List<int>();
+
+        // First Round has special queue mode
+        if(m_round == 1)
+        {
+            m_initialSPDmode.Shuffle();
+            for (int i = 0; i < aList.Count; i++)
+            {
+                spdList.Add(aList[i].Speed + m_initialSPDmode[i]);
+            }
+            DarkSort(spdList, aList);
+
+            return aList;
+        }
+
+        for (int i = 0; i < aList.Count; i++)
+        {
+            spdList.Add(aList[i].Speed);
+        }
+
+        DarkSort(spdList, aList);
+
+        return aList;
     }
 }
