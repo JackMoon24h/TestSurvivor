@@ -6,21 +6,22 @@ public class CameraController : MonoBehaviour
 {
     // Zoom In
     public float normalRate = 90f;
-    public float zoomInRate = 72f;
-    public float zoomInTime = 0.2f;
+    public float zoomInRate = 67f;
+    public float zoomInTime = 0.1f;
     public float zoomInDelay = 0f;
     public iTween.EaseType zoomInType = iTween.EaseType.spring;
 
     public float zoomStayTime = 1f;
 
-    public float zoomOutTime = 0.2f;
+    public float zoomOutTime = 0.5f;
     public float zoomOutDelay = 0f;
     public iTween.EaseType zoomOutType = iTween.EaseType.linear;
 
-    public float rotate = 2f;
+    public float rotate;
+    public float rotateTime = 1f;
 
-    public float shakeRotation = 1f;
-    public float shakeTime = 0.1f;
+    public float shakeRotation;
+    public float shakeTime = 1f;
 
     // Ref
     public CameraEffect cameraEffect;
@@ -70,7 +71,18 @@ public class CameraController : MonoBehaviour
         {
             return;
         }
-        Debug.Log("Zoom Started!");
+
+        if(Commander.instance.turnStateMachine.currentTurn == TurnStateMachine.Turn.PLAYER)
+        {
+            rotate = Random.Range(0.5f, 1f);
+            shakeRotation = 0.15f;
+        }
+        else
+        {
+            rotate = Random.Range(-1f, -0.5f);
+            shakeRotation = -0.15f;
+        }
+
         StartCoroutine(BattleZoomInRoutine());
     }
 
@@ -90,6 +102,11 @@ public class CameraController : MonoBehaviour
             cameraEffect.EnableCameraBlur(true);
         }
 
+        iTween.ShakePosition(gameObject, iTween.Hash(
+            "x", shakeRotation,
+            "time", shakeTime,
+            "delay", 0.1f
+        ));
 
         iTween.ValueTo(gameObject, iTween.Hash(
             "from", normalRate,
@@ -103,7 +120,7 @@ public class CameraController : MonoBehaviour
 
         iTween.RotateTo(gameObject, iTween.Hash(
             "z", rotate,
-            "time", zoomInTime,
+            "time", rotateTime,
             "easetype", zoomInType
         ));
 

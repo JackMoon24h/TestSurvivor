@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterAction : MonoBehaviour {
-
+public class CharacterAction : MonoBehaviour 
+{
     protected Animator animator;
     protected GameObject body;
 
     public bool isActing = false;
-
 
     public float baseMoveSpace = 1f;
     public float correctionSpace = 3f;
@@ -17,7 +16,14 @@ public class CharacterAction : MonoBehaviour {
     public float moveSpace;
     public float moveInTime;
     public float moveOutTime;
-    //public iTween.EaseType moveEaseType;
+
+    // Action Vectors
+    public Vector3 baseOffSet = new Vector3(2f, 0f, 0f);
+    public iTween.EaseType easeTypeIn = iTween.EaseType.linear;
+    public iTween.EaseType easeTypeOut = iTween.EaseType.linear;
+    public float actInTime = 0.1f;
+    public float actOutTime = 0.5f;
+    public Vector3 stage;
 
     public float scaleTime = 0.1f;
     public float readyActionDelay = 0.35f;
@@ -57,7 +63,7 @@ public class CharacterAction : MonoBehaviour {
         {
             // Attack
             case ActionType.MainAttack:
-                StartCoroutine(ActionRoutine(actionType.ToString()));
+                StartCoroutine(AttackRoutine(actionType.ToString()));
                 break;
 
             case ActionType.SubAttack:
@@ -81,6 +87,37 @@ public class CharacterAction : MonoBehaviour {
             default:
                 break;
         }
+    }
+
+    protected virtual IEnumerator AttackRoutine(string action)
+    {
+        // Zoom the camera
+        baseCharacter.cursor.SetActive(false);
+        cameraController.BattleZoomIn();
+        subCameraController.BattleZoomIn();
+        Commander.instance.IsActing = true;
+        SwitchLayer("Actor");
+        animator.SetTrigger(action);
+
+        MoveToStage();
+
+        yield return new WaitForSeconds(moveInTime); // 2 secs
+
+        MoveBackToPosition();
+
+        // Wait until move out action is over, and then reset its transform.position.
+        // Wait more than moveOutTime by 0.5 second in order to avoid some transform related bug.
+        yield return new WaitForSeconds(moveOutTime);
+        body.transform.localPosition = Vector3.zero;
+
+        animator.ResetTrigger(action);
+        SwitchLayer("Character");
+
+        while (cameraController.isZooming || subCameraController.isZooming)
+        {
+            yield return null;
+        }
+        Commander.instance.IsActing = false;
     }
 
     protected virtual IEnumerator ActionRoutine(string action)
@@ -160,19 +197,36 @@ public class CharacterAction : MonoBehaviour {
     // ActionRoutine Related
     protected virtual void MoveToStage()
     {
-        SetMoveSpace(baseCharacter.Position);
+        //SetMoveSpace(baseCharacter.Position);
 
+        //iTween.MoveBy(body, iTween.Hash(
+        //    "x", moveSpace,
+        //    "time", moveInTime
+        //));
+        stage = baseOffSet * baseCharacter.Position;
+
+        Debug.Log("Move to stage");
         iTween.MoveBy(body, iTween.Hash(
-            "x", moveSpace,
-            "time", moveInTime
+            "x", stage.x,
+            "isLocal", true,
+            "time", actInTime,
+            "easetype", easeTypeIn
         ));
     }
 
     protected virtual void MoveBackToPosition()
     {
+        //iTween.MoveBy(body, iTween.Hash(
+        //    "x", -moveSpace,
+        //    "time", moveOutTime
+        //));
+
+        Debug.Log("Move beck to position");
         iTween.MoveBy(body, iTween.Hash(
-            "x", -moveSpace,
-            "time", moveOutTime
+            "x", 0f,
+            "isLocal", true,
+            "time", actOutTime,
+            "easetype", easeTypeOut
         ));
     }
 
