@@ -7,6 +7,7 @@ public class Actor : MonoBehaviour
     // Assign from the inspector
     public GameObject cursor;
     public GameObject targetCursor;
+    public GameObject hpGauge;
 
     [SerializeField]
     protected int m_position;
@@ -141,25 +142,28 @@ public class Actor : MonoBehaviour
     {
         var actualDMG = (int)Mathf.Round(dmg / this.m_protection);
         this.m_health -= actualDMG;
-        this.UpdateHPBar();
-
         if (this.m_health <= 0)
         {
             this.m_health = 0;
             this.isDead = true;
         }
+
+        this.UpdateHPBar();
+        Debug.Log("Received DMG : " + actualDMG);
     }
 
     public virtual void UpdateHPBar()
     {
-        var ratio = (float)Mathf.Max(this.m_health / this.m_maxHealth, 0);
-        if(ratio > 0.5)
-        {
+        var ratio = Mathf.Max((float)this.m_health / (float)this.m_maxHealth, 0);
 
-        }
-        else
-        {
+        iTween.ScaleTo(this.hpGauge, iTween.Hash(
+            "x", ratio,
+            "isLocal", true,
+            "easetype", iTween.EaseType.easeInQuart,
+            "time", 1f,
+            "delay", 0.5f
+        ));
 
-        }
+        Debug.Log("ratio : " + ratio + " Health : " + m_health + " MaxHP : " + m_maxHealth);
     }
 }

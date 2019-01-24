@@ -13,6 +13,5 @@ public class AchillesShot : BaseSkill
         var enemy = target.GetComponent<BaseEnemy>();
 
         enemy.ReceiveDamage(this.damage + PlayerManager.instance.activeCharacter.Damage);
-        Debug.Log("Enemy received DMG : " + this.damage + PlayerManager.instance.activeCharacter.Damage);
     }
 }
