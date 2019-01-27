@@ -2,30 +2,20 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(EnemyAction))]
+[RequireComponent(typeof(CharacterAction))]
 public class BaseEnemy : Actor 
 {
    
-    public EnemyAction enemyAction;
+    public CharacterAction characterAction;
 
     // Exclusive properties
 
     protected int m_mentalDamage;
     public int MentalDamage { get { return m_mentalDamage; } set { m_mentalDamage = value; } }
 
-
-    public enum EnemyType
-    {
-        Walker,
-        Viral,
-        Goon,
-        Volatile
-    }
-    public EnemyType enemyType;
-
     public virtual void Initiate()
     {
-        enemyAction = GetComponent<EnemyAction>();
+        characterAction = GetComponent<CharacterAction>();
     }
 
     public override void CastToEnemy(BaseSkill activeSkill, BaseEnemy target)

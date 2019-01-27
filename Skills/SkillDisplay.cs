@@ -140,7 +140,7 @@ public class SkillDisplay : MonoBehaviour
                     m_isAvailable = true;
                     break;
 
-                case SkillRange.Random:
+                case SkillRange.Self:
                     m_isAvailable = true;
                     break;
 

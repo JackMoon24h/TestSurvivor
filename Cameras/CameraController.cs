@@ -6,7 +6,7 @@ public class CameraController : MonoBehaviour
 {
     // Zoom In
     public float normalRate = 90f;
-    public float zoomInRate = 67f;
+    public float zoomInRate = 75f;
     public float zoomInTime = 0.1f;
     public float zoomInDelay = 0f;
     public iTween.EaseType zoomInType = iTween.EaseType.spring;
@@ -123,6 +123,7 @@ public class CameraController : MonoBehaviour
             "time", rotateTime,
             "easetype", zoomInType
         ));
+            
 
         yield return new WaitForSeconds(zoomInTime + zoomInDelay + zoomStayTime);
 
@@ -144,7 +145,8 @@ public class CameraController : MonoBehaviour
 
         yield return new WaitForSeconds(zoomOutTime + zoomOutDelay);
 
-        if(cameraEffect != null)
+
+        if (cameraEffect != null)
         {
             cameraEffect.EnableCameraBlur(false);
         }

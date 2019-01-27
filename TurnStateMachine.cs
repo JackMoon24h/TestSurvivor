@@ -37,6 +37,7 @@ public class TurnStateMachine : MonoBehaviour
     public int TurnsInRound { get { return m_turnsInRound; } set { m_turnsInRound = value; } }
 
     private List<int> m_initialSPDmode = new List<int>(){ 1, 2, 3, 4, 5, 6, 7, 8 };
+    public List<int> InitialSPDmode { get { return m_initialSPDmode; } }
 
     public List<Actor> queue = new List<Actor>();
 
@@ -46,9 +47,9 @@ public class TurnStateMachine : MonoBehaviour
     bool m_hasHandledEffects;
     public bool HasHandledEffects { get { return m_hasHandledEffects; } set { m_hasHandledEffects = value; } }
 
-	
-	// Update is called once per frame
-	void Update () 
+
+    // Update is called once per frame
+    void Update () 
     {
 
 	}
@@ -112,9 +113,10 @@ public class TurnStateMachine : MonoBehaviour
             // Enemy turn
             currentTurn = Turn.ENEMY;
             var enemy = (BaseEnemy)queue[m_turnCount - 1];
-            enemy.enemyAction.ReadyAction();
+            enemy.characterAction.ReadyAction();
             EnemyManager.instance.SetActiveCharacter(enemy);
 
+            currentTurnState = TurnState.WaitForCommand;
             yield return new WaitForSeconds(0.5f);
 
             EnemyManager.instance.PlayTurn();
@@ -126,9 +128,8 @@ public class TurnStateMachine : MonoBehaviour
             var player = (BaseCharacter)queue[m_turnCount - 1];
             player.characterAction.ReadyAction();
             PlayerManager.instance.SetActiveCharacter(player);
+            currentTurnState = TurnState.WaitForCommand;
         }
-
-        currentTurnState = TurnState.WaitForCommand;
 
         yield return new WaitForSeconds(0.5f);
 
@@ -136,7 +137,7 @@ public class TurnStateMachine : MonoBehaviour
         UIManager.instance.EndUIShield();
         Commander.instance.touchInput.InputEnabled = true;
 
-        // Player must choose a command
+        // Player must choose a command and confirm the target in order to breka the while loop below
         // Player can change its command before confirming targets
         while(!m_hasConfirmedCommand)
         {
@@ -257,10 +258,10 @@ public class TurnStateMachine : MonoBehaviour
         // First Round has special queue mode
         if(m_round == 1)
         {
-            m_initialSPDmode.Shuffle();
+            InitialSPDmode.Shuffle();
             for (int i = 0; i < aList.Count; i++)
             {
-                spdList.Add(aList[i].Speed + m_initialSPDmode[i]);
+                spdList.Add(aList[i].Speed + InitialSPDmode[i]);
             }
             DarkSort(spdList, aList);
 

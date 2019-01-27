@@ -4,6 +4,19 @@ using UnityEngine;
 
 public class Actor : MonoBehaviour 
 {
+    public enum Job
+    {
+        Gang,
+        Soldier,
+        Thief,
+        Nurse,
+        Walker,
+        Viral,
+        Goon,
+        Volatile
+    }
+    public Job job;
+
     // Assign from the inspector
     public GameObject cursor;
     public GameObject targetCursor;
@@ -79,7 +92,7 @@ public class Actor : MonoBehaviour
         PlayerManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
         // Enemy Action
-        target.enemyAction.Act(activeSkill.skillTargetActionType);
+        target.characterAction.Act(activeSkill.skillTargetActionType);
 
         activeSkill.Excute(target.gameObject);
     }
@@ -92,7 +105,7 @@ public class Actor : MonoBehaviour
         // Enemy Action
         foreach (var t in targets)
         {
-            t.enemyAction.Act(activeSkill.skillTargetActionType);
+            t.characterAction.Act(activeSkill.skillTargetActionType);
             activeSkill.Excute(t.gameObject);
         }
     }
@@ -146,10 +159,10 @@ public class Actor : MonoBehaviour
         {
             this.m_health = 0;
             this.isDead = true;
+            Dead();
         }
 
-        this.UpdateHPBar();
-        Debug.Log("Received DMG : " + actualDMG);
+        UpdateHPBar();
     }
 
     public virtual void UpdateHPBar()
@@ -163,7 +176,12 @@ public class Actor : MonoBehaviour
             "time", 1f,
             "delay", 0.5f
         ));
-
-        Debug.Log("ratio : " + ratio + " Health : " + m_health + " MaxHP : " + m_maxHealth);
     }
+
+    public virtual void Dead()
+    {
+
+    }
+
+
 }

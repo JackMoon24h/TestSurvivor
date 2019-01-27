@@ -12,18 +12,23 @@ public class CharacterAction : MonoBehaviour
     public float baseMoveSpace = 1f;
     public float correctionSpace = 3f;
     public float targetMoveSpace = 5f;
-    // Calculate later on
-    public float moveSpace;
-    public float moveInTime;
-    public float moveOutTime;
 
-    // Action Vectors
-    public Vector3 baseOffSet = new Vector3(2f, 0f, 0f);
+    // Attack Action Related =================================================
+    public float actOffsetBase = -5.5f;
+    public float actOffset = 3.5f;
+    public float actMoveOffset = 7f;
+    public float actInPos;
+    public float actOutPos;
     public iTween.EaseType easeTypeIn = iTween.EaseType.linear;
-    public iTween.EaseType easeTypeOut = iTween.EaseType.linear;
-    public float actInTime = 0.1f;
-    public float actOutTime = 0.5f;
-    public Vector3 stage;
+    public iTween.EaseType easeTypeStay = iTween.EaseType.easeOutExpo;
+    public iTween.EaseType easeTypeOut = iTween.EaseType.easeOutExpo;
+    public float actInTime; // Time for moving to act start position
+    public float actStayTime; // Time for moving to act end position
+    public float actOutTime; // Time for moving to original position
+
+    // Defense Action Related =================================================
+    public Vector3 targetStage = new Vector3(5.5f, 0, 0);
+    public float targetMoveOffset = -2.5f;
 
     public float scaleTime = 0.1f;
     public float readyActionDelay = 0.35f;
@@ -31,30 +36,31 @@ public class CharacterAction : MonoBehaviour
     // Ref
     protected CameraController cameraController;
     protected CameraController subCameraController;
-    protected BaseCharacter baseCharacter;
+    protected Actor actor;
 
 	// Use this for initialization
 	protected virtual void Start () 
     {
-        baseCharacter = GetComponent<BaseCharacter>();
+        actor = GetComponent<Actor>();
         animator = GetComponent<Animator>();
         body = this.transform.GetChild(0).gameObject;
         cameraController = Camera.main.GetComponent<CameraController>();
         subCameraController = GameObject.FindWithTag("SubCamera").GetComponent<CameraController>();
 
         // Default Setting
-        moveInTime = cameraController.zoomInTime + cameraController.zoomStayTime;
-        moveOutTime = cameraController.zoomOutTime;
+        actInTime = cameraController.zoomInDelay;
+        actStayTime = cameraController.zoomInTime + cameraController.zoomStayTime;
+        actOutTime = cameraController.zoomOutTime;
     }
 
-    public void TestAct()
+    // For Enemies Only
+    public void Initiate()
     {
-        Act(ActionType.MainAttack);
-    }
-
-    public void TestHit()
-    {
-        Act(ActionType.Hit);
+        actor = GetComponent<Actor>();
+        animator = GetComponent<Animator>();
+        body = this.transform.GetChild(0).gameObject;
+        cameraController = Camera.main.GetComponent<CameraController>();
+        subCameraController = GameObject.FindWithTag("SubCamera").GetComponent<CameraController>();
     }
 
     public void Act(ActionType actionType)
@@ -63,7 +69,7 @@ public class CharacterAction : MonoBehaviour
         {
             // Attack
             case ActionType.MainAttack:
-                StartCoroutine(AttackRoutine(actionType.ToString()));
+                StartCoroutine(ActionRoutine(actionType.ToString()));
                 break;
 
             case ActionType.SubAttack:
@@ -76,7 +82,7 @@ public class CharacterAction : MonoBehaviour
 
             // Defense
             case ActionType.Hit:
-                StartCoroutine(HitRoutine(actionType.ToString()));
+                StartCoroutine(TargetActionRoutine(actionType.ToString()));
                 break;
 
             // Do not move Position
@@ -89,25 +95,30 @@ public class CharacterAction : MonoBehaviour
         }
     }
 
-    protected virtual IEnumerator AttackRoutine(string action)
+
+    protected virtual IEnumerator ActionRoutine(string action)
     {
         // Zoom the camera
-        baseCharacter.cursor.SetActive(false);
+        actor.cursor.SetActive(false);
         cameraController.BattleZoomIn();
         subCameraController.BattleZoomIn();
         Commander.instance.IsActing = true;
         SwitchLayer("Actor");
         animator.SetTrigger(action);
 
-        MoveToStage();
+        // Set
+        SetActPosition(actor.Position);
 
-        yield return new WaitForSeconds(moveInTime); // 2 secs
+        MoveToStage();
+        yield return new WaitForSeconds(actInTime);
+
+        MoveToDestination();
+        yield return new WaitForSeconds(actStayTime);
 
         MoveBackToPosition();
+        yield return new WaitForSeconds(actOutTime + 0.2f);
 
-        // Wait until move out action is over, and then reset its transform.position.
-        // Wait more than moveOutTime by 0.5 second in order to avoid some transform related bug.
-        yield return new WaitForSeconds(moveOutTime);
+        // Just in case
         body.transform.localPosition = Vector3.zero;
 
         animator.ResetTrigger(action);
@@ -120,120 +131,69 @@ public class CharacterAction : MonoBehaviour
         Commander.instance.IsActing = false;
     }
 
-    protected virtual IEnumerator ActionRoutine(string action)
+    protected virtual IEnumerator TargetActionRoutine(string action)
     {
-        // Zoom the camera
-        baseCharacter.cursor.SetActive(false);
-        cameraController.BattleZoomIn();
-        subCameraController.BattleZoomIn();
-
-        Commander.instance.IsActing = true;
-
         SwitchLayer("Actor");
         animator.SetTrigger(action);
 
-        MoveToStage();
+        body.transform.localPosition = targetStage;
+        yield return new WaitForSeconds(actInTime);
 
-        yield return new WaitForSeconds(moveInTime);
+        iTween.MoveBy(body, iTween.Hash(
+            "x", targetMoveOffset,
+            "isLocal", true,
+            "time", actStayTime,
+            "easetype", easeTypeStay
+        ));
+        yield return new WaitForSeconds(actStayTime);
 
         MoveBackToPosition();
-
-        // Wait until move out action is over, and then reset its transform.position.
-        // Wait more than moveOutTime by 0.5 second in order to avoid some transform related bug.
-        yield return new WaitForSeconds(moveOutTime + 0.5f);
-        body.transform.localPosition = Vector3.zero;
-
-        animator.ResetTrigger(action);
-        SwitchLayer("Character");
-
-        while(cameraController.isZooming || subCameraController.isZooming)
-        {
-            yield return null;
-        }
-        Commander.instance.IsActing = false;
-    }
-
-    protected virtual IEnumerator HitRoutine(string action)
-    {
-
-        SwitchLayer("Actor");
-        animator.SetTrigger(action);
-
-        MoveToTargetStage();
-
-        yield return new WaitForSeconds(moveInTime);
-
-        MoveFromTargetStage();
-
-        // Wait until move out action is over, and then reset its transform.position.
-        // Wait more than moveOutTime by 0.5 second in order to avoid some transform related bug.
-        yield return new WaitForSeconds(moveOutTime + 0.5f);
+        yield return new WaitForSeconds(actOutTime + 0.2f);
         body.transform.localPosition = Vector3.zero;
 
         animator.ResetTrigger(action);
         SwitchLayer("Character");
     }
 
-    protected virtual void MoveToTargetStage()
-    {
-        body.transform.localPosition = new Vector3(targetMoveSpace, 0, 0);
-
-        iTween.MoveBy(body, iTween.Hash(
-            "x", -targetMoveSpace / 2,
-            "time", moveInTime
-        ));
-    }
-
-    protected virtual void MoveFromTargetStage()
-    {
-        var towardOriginVector = Vector3.zero - body.transform.localPosition;
-
-        iTween.MoveBy(body, iTween.Hash(
-            "x", towardOriginVector.x,
-            "time", moveOutTime
-        ));
-    }
-
-    // ActionRoutine Related
     protected virtual void MoveToStage()
     {
-        //SetMoveSpace(baseCharacter.Position);
-
-        //iTween.MoveBy(body, iTween.Hash(
-        //    "x", moveSpace,
-        //    "time", moveInTime
-        //));
-        stage = baseOffSet * baseCharacter.Position;
-
-        Debug.Log("Move to stage");
-        iTween.MoveBy(body, iTween.Hash(
-            "x", stage.x,
+        // Move to Stage
+        iTween.MoveTo(body, iTween.Hash(
+            "x", actInPos,
             "isLocal", true,
             "time", actInTime,
             "easetype", easeTypeIn
         ));
     }
 
+    protected virtual void MoveToDestination()
+    {
+        // Move Forward!
+        iTween.MoveTo(body, iTween.Hash(
+            "x", actOutPos,
+            "isLocal", true,
+            "time", actStayTime,
+            "easetype", easeTypeStay
+        ));
+    }
+
+    // Common Action
     protected virtual void MoveBackToPosition()
     {
-        //iTween.MoveBy(body, iTween.Hash(
-        //    "x", -moveSpace,
-        //    "time", moveOutTime
-        //));
-
-        Debug.Log("Move beck to position");
-        iTween.MoveBy(body, iTween.Hash(
-            "x", 0f,
+        // Move back to original position
+        iTween.MoveTo(body, iTween.Hash(
+            "x", Vector3.zero.x,
             "isLocal", true,
             "time", actOutTime,
             "easetype", easeTypeOut
         ));
     }
 
-    protected virtual void SetMoveSpace(int currentPosition)
+    protected virtual void SetActPosition(int currentPosition)
     {
-        var temp = (float)currentPosition;
-        moveSpace = baseMoveSpace + temp * correctionSpace;
+        actInPos = actOffset * (currentPosition - 1) + actOffsetBase;
+        actOutPos = actInPos + actMoveOffset;
+
     }
 
     protected virtual void SwitchLayer(string layerName)
@@ -241,8 +201,6 @@ public class CharacterAction : MonoBehaviour
         this.gameObject.layer = LayerMask.NameToLayer(layerName);
         this.body.layer = LayerMask.NameToLayer(layerName);
     }
-
-
 
     // Apply this method to active unit and its confirmed targets
     public virtual void ReadyAction()

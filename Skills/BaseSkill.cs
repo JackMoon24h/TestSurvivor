@@ -6,8 +6,7 @@ using UnityEngine;
 public enum SkillType // Type of trigger to excute skill
 {
     SingleTarget,
-    MultipleTarget,
-    SelfTarget
+    MultipleTarget
 }
 
 // Battle related actions only
@@ -17,14 +16,14 @@ public enum ActionType
     SubAttack,
     Buff,
     Hit,
-    Idle
+    Idle // None
 }
 
 public enum SkillRange // Whether it is selectable or not
 {
     Unfriendly,
     Friendly,
-    Random // Randomly target one of the detonated targets
+    Self // Randomly target one of the detonated targets
 }
 
 [System.Serializable]
@@ -35,7 +34,7 @@ public class BaseSkill : MonoBehaviour
     [Range(1,5)]
     public int level;
     public Sprite skillIcon;
-    public BaseCharacter.Job belongTo;
+    public Actor.Job belongTo;
     public GameObject[] bloodEffects; // needs assigned when we create the skill
 
     // Unique Mechanism
@@ -47,9 +46,12 @@ public class BaseSkill : MonoBehaviour
     public bool[] castPositions = new bool[4];
     public bool[] targetPositions = new bool[4];
 
-    public float accuracy;
-    public float critical;
-    public int damage;
+    // Basic Paramater modifiers
+    public float accMode;
+    public float critMode;
+    public int dmgMode;
+
+    public Actor targetActor;
 
     public bool canCrit = false; // Whether it can crit or not
     public List<SkillEffect> effects = new List<SkillEffect>();
@@ -71,5 +73,14 @@ public class BaseSkill : MonoBehaviour
     {
         Debug.Log("Skill Generated");
         // Instantiate common damage effects
+
+        if(target.tag == "Enemy")
+        {
+            targetActor = target.GetComponent<BaseEnemy>();
+        }
+        else
+        {
+            targetActor = target.GetComponent<BaseCharacter>();
+        }
     }
 }

@@ -239,7 +239,7 @@ public class Commander : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-        // WIN BATTLE
+        // Finish Battle will be called when player won the battle
         FinishBattle();
     }
 

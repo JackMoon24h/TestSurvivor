@@ -31,7 +31,7 @@ public class Gang : BaseCharacter
         m_maxMental = 100;
         m_mental = m_maxMental;
         m_damage = 8;
-        m_protection = 7;
+        m_protection = 5;
         m_endurance = 5;
         m_speed = 10;
         m_accuracy = 12;

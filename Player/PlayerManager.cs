@@ -261,18 +261,13 @@ public class PlayerManager : MonoBehaviour
                 Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.ConfirmTarget;
 
                 break;
-            case SkillRange.Random:
+
+            case SkillRange.Self:
                 ClearUnfriendlyTargets();
 
-                for (int i = 0; i < EnemyManager.instance.characterList.Count; i++)
-                {
-                    if (activeSkill.targetPositions[i])
-                    {
-                        EnemyManager.instance.characterList[i].targetCursor.SetActive(true);
-                        EnemyManager.instance.characterList[i].isTargeted = true;
-                        unfriendlyTargets.Add(EnemyManager.instance.characterList[i]);
-                    }
-                }
+                activeCharacter.targetCursor.SetActive(true);
+                activeCharacter.isTargeted = true;
+                friendlyTargets.Add(activeCharacter);
                 Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.ConfirmTarget;
                 break;
             default:
@@ -328,10 +323,6 @@ public class PlayerManager : MonoBehaviour
                 activeCharacter.CastToAllies(activeCharacter.activeCommand, friendlyTargets);
 
                 ClearFriendlyTargets();
-                break;
-            case SkillType.SelfTarget:
-                activeCharacter.CastToSelf(activeCharacter.activeCommand);
-
                 break;
         }
     }

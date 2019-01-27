@@ -66,7 +66,7 @@ public class EnemyManager : MonoBehaviour
 
                 // Initialize Enemies
                 enemyCompo.Initiate();
-                enemyCompo.enemyAction.Initiate();
+                enemyCompo.characterAction.Initiate();
 
                 enemyCompo.cursor.SetActive(false);
             }

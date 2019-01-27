@@ -77,6 +77,7 @@ public class TouchInput : MonoBehaviour
                                 }
                             }
                             break;
+
                         case "Enemy":
                             // Player can click enemies only in the battle
                             var eTarget = PlayerManager.instance.clickedObject.GetComponent<BaseEnemy>();
@@ -87,10 +88,11 @@ public class TouchInput : MonoBehaviour
                             }
                             else
                             {
-                                Debug.Log("You clicked an Enemy");
+                                // Non-Target
                             }
 
                             break;
+
                         case "Object":
                             if(!Commander.instance.IsBattle)
                             {
@@ -99,6 +101,7 @@ public class TouchInput : MonoBehaviour
                             }
                             // If in the battle, ignore it
                             break;
+
                         default:
                             Debug.Log("Default :: Clicked Object : " + PlayerManager.instance.clickedObject.name);
                             break;

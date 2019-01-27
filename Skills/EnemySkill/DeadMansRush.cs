@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TargetLock : BaseSkill 
+public class DeadMansRush : BaseSkill 
 {
+    public int mentalDmgMode;
+
     public override void Excute(GameObject target)
     {
         base.Excute(target);
 
-        targetActor.ReceiveDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
+        targetActor.ReceiveDamage(this.dmgMode + EnemyManager.instance.activeCharacter.Damage);
     }
 }

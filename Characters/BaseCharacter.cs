@@ -52,14 +52,6 @@ public class BaseCharacter : Actor
         Legendary
     }
 
-    public enum Job
-    {
-        Gang,
-        Soldier,
-        Thief,
-        Nurse
-    }
-
     public enum PhysicalState
     {
         Normal,
@@ -78,7 +70,7 @@ public class BaseCharacter : Actor
 
     // Enum
     public Rarity rarity;
-    public Job job;
+
     public PhysicalState physicalState = PhysicalState.Normal;
     public PsychologicalState psychologicalState = PsychologicalState.Sane;
 
