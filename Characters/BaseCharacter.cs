@@ -2,16 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-[RequireComponent(typeof(CharacterAction))]
-[RequireComponent(typeof(SkillManager))]
+
 public class BaseCharacter : Actor 
 {
-    // Ref
-    [HideInInspector]
-    public CharacterAction characterAction;
-    public SkillManager skillManager;
-    BoxCollider2D col;
 
     // Images
     public Sprite profileImage;
@@ -74,11 +67,9 @@ public class BaseCharacter : Actor
     public PhysicalState physicalState = PhysicalState.Normal;
     public PsychologicalState psychologicalState = PsychologicalState.Sane;
 
-    protected virtual void Awake()
+    protected override void Awake()
     {
-        skillManager = GetComponent<SkillManager>();
-        characterAction = GetComponent<CharacterAction>();
-        col = GetComponent<BoxCollider2D>();
+        base.Awake();
     }
 
     // Use this for initialization

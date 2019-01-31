@@ -72,22 +72,34 @@ public class CharacterAction : MonoBehaviour
                 StartCoroutine(ActionRoutine(actionType.ToString()));
                 break;
 
-            case ActionType.SubAttack:
+            case ActionType.Pick:
                 StartCoroutine(ActionRoutine(actionType.ToString()));
+                break;
+
+                // Defensive Animation
+            case ActionType.SubAttack:
+                StartCoroutine(TargetActionRoutine(actionType.ToString()));
                 break;
 
             case ActionType.Buff:
-                StartCoroutine(ActionRoutine(actionType.ToString()));
+                StartCoroutine(TargetActionRoutine(actionType.ToString()));
                 break;
 
-            // Defense
             case ActionType.Hit:
                 StartCoroutine(TargetActionRoutine(actionType.ToString()));
                 break;
 
-            // Do not move Position
+            case ActionType.CriticalHit:
+                StartCoroutine(TargetActionRoutine(actionType.ToString()));
+                break;
 
+            case ActionType.Dodge:
+                StartCoroutine(TargetActionRoutine(actionType.ToString()));
+                break;
+
+            // Do not move Position
             case ActionType.Idle:
+
                 break;
 
             default:
@@ -236,6 +248,10 @@ public class CharacterAction : MonoBehaviour
         ));
     }
 
+    public virtual void DeadAction()
+    {
+        this.animator.SetTrigger("Dead");
+    }
 
     // Outside of battle
     public virtual void MoveForwardAction()

@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Command : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
+public class DeckManager : MonoBehaviour 
+{
+    public float swapSpeed = 0.6f;
+    // Use this for initialization
+    void Start () {
 		
 	}
 	

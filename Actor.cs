@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+[RequireComponent(typeof(CharacterAction))]
+[RequireComponent(typeof(SkillManager))]
 public class Actor : MonoBehaviour 
 {
     public enum Job
@@ -21,6 +24,10 @@ public class Actor : MonoBehaviour
     public GameObject cursor;
     public GameObject targetCursor;
     public GameObject hpGauge;
+
+    [HideInInspector] public CharacterAction characterAction;
+    [HideInInspector] public SkillManager skillManager;
+    [HideInInspector] public BoxCollider2D col;
 
     [SerializeField]
     protected int m_position;
@@ -85,6 +92,12 @@ public class Actor : MonoBehaviour
 
     public BaseSkill activeCommand;
 
+    protected virtual void Awake()
+    {
+        characterAction = GetComponent<CharacterAction>();
+        skillManager = GetComponent<SkillManager>();
+        col = GetComponent<BoxCollider2D>();
+    }
 
     public virtual void CastToEnemy(BaseSkill activeSkill, BaseEnemy target)
     {
@@ -155,6 +168,7 @@ public class Actor : MonoBehaviour
     {
         var actualDMG = (int)Mathf.Round(dmg / this.m_protection);
         this.m_health -= actualDMG;
+
         if (this.m_health <= 0)
         {
             this.m_health = 0;
@@ -180,8 +194,6 @@ public class Actor : MonoBehaviour
 
     public virtual void Dead()
     {
-
+        characterAction.DeadAction();
     }
-
-
 }

@@ -143,6 +143,7 @@ public class TurnStateMachine : MonoBehaviour
         {
             yield return null;
         }
+        UIManager.instance.BeginUIShield();
         Commander.instance.turnStateMachine.currentTurnState = TurnState.DoAction;
     }
 

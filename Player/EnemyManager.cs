@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyManager : MonoBehaviour
+public class EnemyManager : DeckManager
 {
     public static EnemyManager instance;
     public static float spacing = 3.5f;
@@ -18,6 +18,9 @@ public class EnemyManager : MonoBehaviour
     public BaseEnemy activeCharacter;
     public GameObject clickedObject;
     public BaseSkill activeCommand;
+
+    // Exclusive Parameters
+    
 
     private void Awake()
     {
@@ -131,8 +134,32 @@ public class EnemyManager : MonoBehaviour
 
     public void PlayTurn()
     {
-        // Choose Command
+        StartCoroutine(PlayTurnRoutine());
+    }
+
+    IEnumerator PlayTurnRoutine()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        EnemyManager.instance.activeCharacter.ChooseCommand();
+        Commander.instance.narrator.Narrate(EnemyManager.instance.activeCommand.skillName);
+
+        yield return new WaitForSeconds(1f);
+        // Set Target
+        if(EnemyManager.instance.activeCommand.skillRange == SkillRange.Unfriendly)
+        {
+
+        }
+
+        Commander.instance.turnStateMachine.HasConfirmedCommand = true;
+
+        // Choose Available Command
+
+
         // Select Target
         // Do Action
+        yield return null;
     }
+
+
 }

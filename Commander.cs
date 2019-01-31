@@ -22,6 +22,7 @@ public class Commander : MonoBehaviour
 
     // Ref
     public GameObject goal;
+    public GameObject deathIconPrefab;
 
     // Overall Gameplay Control
     bool m_hasLevelStarted = false;
@@ -81,13 +82,13 @@ public class Commander : MonoBehaviour
         {
             Debug.LogWarning("No Commander or PlayerManager Found");
         }
-	}
-	
-	// Update is called once per frame
-	void Update () 
+    }
+    
+    // Update is called once per frame
+    void Update () 
     {
-		
-	}
+        
+    }
 
     void MakeSingleton()
     {
@@ -325,5 +326,10 @@ public class Commander : MonoBehaviour
         actorList.Clear();
         var actors = Object.FindObjectsOfType<Actor>();
         actorList.AddRange(actors);
+    }
+
+    public void CreateUIonObject(GameObject uiPrefab, Vector3 pos)
+    {
+        var t = Instantiate(uiPrefab, pos, Quaternion.identity);
     }
 }

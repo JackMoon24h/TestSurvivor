@@ -16,6 +16,9 @@ public enum ActionType
     SubAttack,
     Buff,
     Hit,
+    CriticalHit,
+    Pick,
+    Dodge,
     Idle // None
 }
 

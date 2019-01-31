@@ -4,7 +4,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(PlayerInput))]
 [RequireComponent(typeof(PlayerMover))]
-public class PlayerManager : MonoBehaviour 
+public class PlayerManager : DeckManager 
 {
     public static PlayerManager instance;
     public PlayerInput playerInput;
@@ -25,7 +25,7 @@ public class PlayerManager : MonoBehaviour
     public bool isMovingForward = false;
     public bool isMovingBackWard = false;
     public bool isReached = false;
-    public float swapSpeed = 0.6f;
+
 
 
     public GameObject[] characterPrefabs = new GameObject[4];
@@ -310,7 +310,6 @@ public class PlayerManager : MonoBehaviour
     public void ConfirmAllyTarget(BaseCharacter selectedTarget)
     {
         Commander.instance.turnStateMachine.HasConfirmedCommand = true;
-        UIManager.instance.BeginUIShield();
 
         switch (activeCharacter.activeCommand.skillType)
         {
@@ -330,7 +329,6 @@ public class PlayerManager : MonoBehaviour
     public void ConfirmEnemyTarget(BaseEnemy selectedTarget)
     {
         Commander.instance.turnStateMachine.HasConfirmedCommand = true;
-        UIManager.instance.BeginUIShield();
 
         switch (activeCharacter.activeCommand.skillType)
         {
