@@ -116,7 +116,7 @@ public class SkillDisplay : MonoBehaviour
                 case SkillRange.Unfriendly:
                     int temp = 0;
                     // EnemyManager.instance.characterist can have 1~4 objects
-                    // Which menas, if i = 4, EnemyManager.instance.characterist[i = 4] is an error * Argumant out of range
+                    // Which means, if i = 4, EnemyManager.instance.characterist[i = 4] is an error * Argumant out of range
                     for (int i = 0; i < EnemyManager.instance.characterList.Count; i++)
                     {
                         if(thisSkill.targetPositions[i])
@@ -133,11 +133,26 @@ public class SkillDisplay : MonoBehaviour
                     {
                         m_isAvailable = false;
                     }
-
                     break;
 
                 case SkillRange.Friendly:
-                    m_isAvailable = true;
+                    int tempF = 0;
+                    for (int i = 0; i < PlayerManager.instance.characterList.Count; i++)
+                    {
+                        if (thisSkill.targetPositions[i])
+                        {
+                            tempF += 1;
+                        }
+                    }
+
+                    if (tempF > 0)
+                    {
+                        m_isAvailable = true;
+                    }
+                    else
+                    {
+                        m_isAvailable = false;
+                    }
                     break;
 
                 case SkillRange.Self:

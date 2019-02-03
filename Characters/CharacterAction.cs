@@ -28,6 +28,7 @@ public class CharacterAction : MonoBehaviour
 
     // Defense Action Related =================================================
     public Vector3 targetStage = new Vector3(5.5f, 0, 0);
+    public Vector3 buffTargetStage = new Vector3(6.5f, 0, 0);
     public float targetMoveOffset = -2.5f;
 
     public float scaleTime = 0.1f;
@@ -82,7 +83,7 @@ public class CharacterAction : MonoBehaviour
                 break;
 
             case ActionType.Buff:
-                StartCoroutine(TargetActionRoutine(actionType.ToString()));
+                StartCoroutine(BuffActionRoutine(actionType.ToString()));
                 break;
 
             case ActionType.Hit:
@@ -98,8 +99,8 @@ public class CharacterAction : MonoBehaviour
                 break;
 
             // Do not move Position
-            case ActionType.Idle:
-
+            case ActionType.Buffed:
+                StartCoroutine(BuffedActionRoutine());
                 break;
 
             default:
@@ -143,8 +144,43 @@ public class CharacterAction : MonoBehaviour
         Commander.instance.IsActing = false;
     }
 
+    protected virtual IEnumerator BuffActionRoutine(string action)
+    {
+        actor.cursor.SetActive(false);
+        cameraController.BattleZoomIn();
+        subCameraController.BattleZoomIn();
+        Commander.instance.IsActing = true;
+        SwitchLayer("Actor");
+        animator.SetTrigger(action);
+
+        body.transform.localPosition = buffTargetStage;
+        yield return new WaitForSeconds(actInTime);
+
+        iTween.MoveBy(body, iTween.Hash(
+            "x", -1f,
+            "isLocal", true,
+            "time", actStayTime,
+            "easetype", easeTypeStay
+        ));
+        yield return new WaitForSeconds(actStayTime);
+
+        MoveBackToPosition();
+        yield return new WaitForSeconds(actOutTime + 0.2f);
+        body.transform.localPosition = Vector3.zero;
+
+        animator.ResetTrigger(action);
+        SwitchLayer("Character");
+
+        while (cameraController.isZooming || subCameraController.isZooming)
+        {
+            yield return null;
+        }
+        Commander.instance.IsActing = false;
+    }
+
     protected virtual IEnumerator TargetActionRoutine(string action)
     {
+
         SwitchLayer("Actor");
         animator.SetTrigger(action);
 
@@ -164,6 +200,30 @@ public class CharacterAction : MonoBehaviour
         body.transform.localPosition = Vector3.zero;
 
         animator.ResetTrigger(action);
+        SwitchLayer("Character");
+    }
+
+    protected virtual IEnumerator BuffedActionRoutine()
+    {
+        SwitchLayer("Actor");
+        //animator.SetTrigger(action);
+
+        body.transform.localPosition = buffTargetStage;
+        yield return new WaitForSeconds(actInTime);
+
+        iTween.MoveBy(body, iTween.Hash(
+            "x", -1f,
+            "isLocal", true,
+            "time", actStayTime,
+            "easetype", easeTypeStay
+        ));
+        yield return new WaitForSeconds(actStayTime);
+
+        MoveBackToPosition();
+        yield return new WaitForSeconds(actOutTime + 0.2f);
+        body.transform.localPosition = Vector3.zero;
+
+        //animator.ResetTrigger(action);
         SwitchLayer("Character");
     }
 
@@ -248,9 +308,49 @@ public class CharacterAction : MonoBehaviour
         ));
     }
 
-    public virtual void DeadAction()
+    public void Dead()
     {
-        this.animator.SetTrigger("Dead");
+        StartCoroutine(DeadRoutine());
+    }
+
+    public IEnumerator DeadRoutine()
+    {
+        SwitchLayer("Actor");
+        animator.SetTrigger("Dead");
+
+        body.transform.localPosition = targetStage;
+        yield return new WaitForSeconds(actInTime);
+
+        iTween.MoveBy(body, iTween.Hash(
+            "x", targetMoveOffset,
+            "isLocal", true,
+            "time", actStayTime,
+            "easetype", easeTypeStay
+        ));
+        yield return new WaitForSeconds(actStayTime);
+
+        MoveBackToPosition();
+        yield return new WaitForSeconds(actOutTime + 0.2f);
+        body.transform.localPosition = Vector3.zero;
+
+        animator.ResetTrigger("Dead");
+        SwitchLayer("Character");
+
+        if (this.gameObject.tag == "Enemy")
+        {
+            EnemyManager.instance.characterList.RemoveAt(this.actor.Position - 1);
+            EnemyManager.instance.SetPositions(EnemyManager.instance.characterList);
+            Commander.instance.narrator.Narrate("Singular Strike...!!");
+        }
+        else
+        {
+            PlayerManager.instance.characterList.RemoveAt(this.actor.Position - 1);
+            PlayerManager.instance.SetPositions(PlayerManager.instance.characterList);
+            Commander.instance.narrator.Narrate("Slowly, gently...life is taken...");
+        }
+
+        Destroy(this.gameObject);
+        Commander.instance.IsActing = false;
     }
 
     // Outside of battle

@@ -12,6 +12,7 @@ public class UIManager : MonoBehaviour
     public Text profileName;
 
     // Set from inspector
+
     public Image[] playerListIMG = new Image[4];
     public Color pExistColor;
     public Color pNotExistColor;
@@ -24,6 +25,7 @@ public class UIManager : MonoBehaviour
     public bool OnUIShield;
 
     public GameObject actionResultPrefab;
+    public int availableSkNum;
 
     // Use this for initialization
     private void Awake()
@@ -69,9 +71,16 @@ public class UIManager : MonoBehaviour
         this.profileImage.sprite = updateTarget.profileImage;
         this.profileName.text = updateTarget.gameObject.name;
 
-        foreach(SkillDisplay sd in skillDisplays)
+        availableSkNum = 0;
+
+        foreach (SkillDisplay sd in skillDisplays)
         {
             sd.UpdateSkillInfo(updateTarget);
+
+            if(sd.IsAvailable)
+            {
+                availableSkNum++;
+            }
         }
     }
 

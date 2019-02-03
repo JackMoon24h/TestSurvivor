@@ -107,8 +107,15 @@ public class TurnStateMachine : MonoBehaviour
     {
         Debug.Log("StartTurnRoutine : Turn / Round " + m_turnCount + " / " + m_round);
 
+        // If it is dead then skip turn
+        while(queue[m_turnCount - 1] == null)
+        {
+            yield return new WaitForSeconds(0.5f);
+            SkipTurn();
+        }
+
         // Get Active Character from queue
-        if(queue[m_turnCount - 1].gameObject.tag == "Enemy")
+        if (queue[m_turnCount - 1].gameObject.tag == "Enemy")
         {
             // Enemy turn
             currentTurn = Turn.ENEMY;
@@ -129,7 +136,15 @@ public class TurnStateMachine : MonoBehaviour
             player.characterAction.ReadyAction();
             PlayerManager.instance.SetActiveCharacter(player);
             currentTurnState = TurnState.WaitForCommand;
+
+            // If it is the last one standing in the deck then check if it has available skill
+            if(PlayerManager.instance.characterList.Count == 1 && UIManager.instance.availableSkNum == 0)
+            {
+                SkipTurn();
+            }
         }
+
+
 
         yield return new WaitForSeconds(0.5f);
 
@@ -198,12 +213,17 @@ public class TurnStateMachine : MonoBehaviour
             // Won. Stop coroutine and finish battle.
             Commander.instance.IsBattle = false;
             yield break;
+
         }
         else if (currentTurn == Turn.ENEMY && Commander.instance.AreCharactersAllDead())
         {
             // Lose.
+            Commander.instance.IsBattle = false;
             Commander.instance.LoseLevel();
+            yield break;
         }
+
+        Debug.Log("Win or Lose conditions are not met");
 
         m_turnCount++;
         m_turnsInRound = queue.Count;
@@ -277,5 +297,20 @@ public class TurnStateMachine : MonoBehaviour
         DarkSort(spdList, aList);
 
         return aList;
+    }
+
+    public void SkipTurn()
+    {
+        Debug.Log("Skip Turn");
+        this.m_turnCount++;
+
+        m_turnsInRound = queue.Count;
+
+        if (m_turnCount > m_turnsInRound)
+        {
+            m_turnCount = 1;
+            m_round++;
+            UpdateRound();
+        }
     }
 }

@@ -8,6 +8,6 @@ public class TargetLock : BaseSkill
     {
         base.Excute(target);
 
-        targetActor.ReceiveDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
+        //targetActor.ReceiveDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
     }
 }

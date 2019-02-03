@@ -4,7 +4,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(PlayerInput))]
 [RequireComponent(typeof(PlayerMover))]
-public class PlayerManager : DeckManager 
+public class PlayerManager : MonoBehaviour 
 {
     public static PlayerManager instance;
     public PlayerInput playerInput;
@@ -20,7 +20,7 @@ public class PlayerManager : DeckManager
         new Vector2(3 * spacing, 0f),
         new Vector2(4 * spacing, 0f),
     };
-
+    public float swapSpeed = 0.6f;
 
     public bool isMovingForward = false;
     public bool isMovingBackWard = false;
@@ -167,7 +167,7 @@ public class PlayerManager : DeckManager
             return;
         }
 
-        if(activeCharacter)
+        if(activeCharacter != null)
         {
             ClearActiveCharacter();
         }
@@ -204,7 +204,11 @@ public class PlayerManager : DeckManager
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        switch(collision.gameObject.tag)
+        if(!Commander.instance.IsGamePlaying)
+        {
+            return;
+        }
+        switch (collision.gameObject.tag)
         {
             case "Trigger":
                 var battle = collision.gameObject.GetComponent<Trigger>();
@@ -387,6 +391,12 @@ public class PlayerManager : DeckManager
     // This function will be called by button clicking
     public void DrawSwapPositions()
     {
+        if (PlayerManager.instance.characterList.Count == 1)
+        {
+            // Skip Turn
+            return;
+        }
+
         ClearUnfriendlyTargets();
         ClearFriendlyTargets();
 

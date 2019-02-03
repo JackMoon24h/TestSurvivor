@@ -105,8 +105,8 @@ public class BaseCharacter : Actor
 
     }
 
-    public override void ReceiveDamage(int dmg)
+    public override void TakeDamage(int dmg)
     {
-        base.ReceiveDamage(dmg);
+        base.TakeDamage(dmg);
     }
 }

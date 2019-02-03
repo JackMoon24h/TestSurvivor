@@ -19,7 +19,7 @@ public enum ActionType
     CriticalHit,
     Pick,
     Dodge,
-    Idle // None
+    Buffed // When receive buff
 }
 
 public enum SkillRange // Whether it is selectable or not
@@ -74,7 +74,7 @@ public class BaseSkill : MonoBehaviour
 
     public virtual void Excute(GameObject target)
     {
-        Debug.Log("Skill Generated");
+
         // Instantiate common damage effects
 
         if(target.tag == "Enemy")

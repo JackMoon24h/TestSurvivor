@@ -10,6 +10,6 @@ public class DeadMansRush : BaseSkill
     {
         base.Excute(target);
 
-        targetActor.ReceiveDamage(this.dmgMode + EnemyManager.instance.activeCharacter.Damage);
+        targetActor.TakeDamage(this.dmgMode + EnemyManager.instance.activeCharacter.Damage);
     }
 }

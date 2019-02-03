@@ -22,39 +22,73 @@ public class BaseEnemy : Actor
         characterAction = GetComponent<CharacterAction>();
     }
 
-    public override void CastToEnemy(BaseSkill activeSkill, BaseEnemy target)
+    public void CastToEnemy(BaseSkill activeSkill, BaseCharacter target)
     {
+        // Player Action
+        EnemyManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
+        // Enemy Action
+        target.characterAction.Act(activeSkill.skillTargetActionType);
+
+        activeSkill.Excute(target.gameObject);
     }
 
-    public override void CastToEnemies(BaseSkill activeSkill, List<BaseEnemy> targets)
+    public void CastToEnemies(BaseSkill activeSkill, List<BaseCharacter> targets)
     {
+        // Player Action
+        EnemyManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
+        // Enemy Action
+        foreach (var t in targets)
+        {
+            t.characterAction.Act(activeSkill.skillTargetActionType);
+            activeSkill.Excute(t.gameObject);
+        }
     }
 
     public override void CastToSelf(BaseSkill activeSkill)
     {
+        EnemyManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
+        activeSkill.Excute(gameObject);
     }
 
-    public override void CastToAlly(BaseSkill activeSkill, BaseCharacter target)
+    public void CastToAlly(BaseSkill activeSkill, BaseEnemy target)
     {
+        // Player Action
+        EnemyManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
+        // Ally Action
+        target.characterAction.Act(activeSkill.skillTargetActionType);
+
+
+        activeSkill.Excute(target.gameObject);
     }
 
-    public override void CastToAllies(BaseSkill activeSkill, List<BaseCharacter> targets)
+    public void CastToAllies(BaseSkill activeSkill, List<BaseEnemy> targets)
     {
+        // Player Action
+        EnemyManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
+        // Enemy Action
+        foreach (var t in targets)
+        {
+            if (t != EnemyManager.instance.activeCharacter)
+            {
+                t.characterAction.Act(activeSkill.skillTargetActionType);
+                activeSkill.Excute(t.gameObject);
+            }
+        }
     }
 
     public override void CastToRandomTarget(BaseSkill activeSkill)
     {
-
+        Debug.Log("Implement later on");
     }
 
-    public override void ReceiveDamage(int dmg)
+    public override void TakeDamage(int dmg)
     {
-        base.ReceiveDamage(dmg);
+        base.TakeDamage(dmg);
     }
 
     public void ChooseCommand()
@@ -71,13 +105,13 @@ public class BaseEnemy : Actor
 
         if (candidates.Count == 0)
         {
-            // Move Position or Skip Turn if this enemy is left alone
+            EnemyManager.instance.DrawSwapPositions();
             return;
         }
 
-        int rand = Random.Range(1, candidates.Count);
-        EnemyManager.instance.activeCommand = candidates[rand];
-        Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.ConfirmTarget;
+        int rand = Random.Range(0, candidates.Count);
+
+        this.activeCommand = candidates[rand];
     }
 
     bool IsAvailableCommand(BaseSkill thisSkill)

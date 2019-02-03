@@ -26,11 +26,11 @@ public class Gang : BaseCharacter
         jobDescription = this.Name + " had lived in slum vilage robbing and stealing money from people before the nightmare";
         m_level = 1;
         m_name = "John Washington";
-        m_maxHealth = 25;
+        m_maxHealth = 1;
         m_health = m_maxHealth;
         m_maxMental = 100;
         m_mental = m_maxMental;
-        m_damage = 8;
+        m_damage = 30;
         m_protection = 5;
         m_endurance = 5;
         m_speed = 10;

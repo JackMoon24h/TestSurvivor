@@ -87,10 +87,20 @@ public class Actor : MonoBehaviour
     protected int m_moveRes;
     public int MoveRes { get { return m_moveRes; } set { m_moveRes = value; } }
 
-    protected int m_debuffRes;
-    public int DebuffRes { get { return m_debuffRes; } set { m_debuffRes = value; } }
 
     public BaseSkill activeCommand;
+
+    // Physical Effects
+    public List<PhysicalEffect> physicalEffects = new List<PhysicalEffect>();
+
+    bool m_isBleeding;
+    public bool IsBleeding { get { return m_isBleeding; } set { m_isBleeding = value; } }
+
+    bool m_isInfected;
+    public bool IsInfected { get { return m_isInfected; } set { m_isInfected = value; } }
+
+    bool m_isStunned;
+    public bool IsStunned { get { return m_isStunned; } set { m_isStunned = value; } }
 
     protected virtual void Awake()
     {
@@ -136,8 +146,10 @@ public class Actor : MonoBehaviour
         PlayerManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
         // Ally Action
-        target.characterAction.Act(activeSkill.skillTargetActionType);
-
+        if(target != this)
+        {
+            target.characterAction.Act(activeSkill.skillTargetActionType);
+        }
 
         activeSkill.Excute(target.gameObject);
     }
@@ -150,11 +162,11 @@ public class Actor : MonoBehaviour
         // Enemy Action
         foreach (var t in targets)
         {
-            if (t != PlayerManager.instance.activeCharacter)
+            if (t != this)
             {
                 t.characterAction.Act(activeSkill.skillTargetActionType);
-                activeSkill.Excute(t.gameObject);
             }
+            activeSkill.Excute(t.gameObject);
         }
     }
 
@@ -164,7 +176,7 @@ public class Actor : MonoBehaviour
     }
 
     // Handle Effects
-    public virtual void ReceiveDamage(int dmg)
+    public virtual void TakeDamage(int dmg)
     {
         var actualDMG = (int)Mathf.Round(dmg / this.m_protection);
         this.m_health -= actualDMG;
@@ -172,11 +184,14 @@ public class Actor : MonoBehaviour
         if (this.m_health <= 0)
         {
             this.m_health = 0;
+            UpdateHPBar();
             this.isDead = true;
-            Dead();
+            characterAction.Dead();
         }
-
-        UpdateHPBar();
+        else
+        {
+            UpdateHPBar();
+        }
     }
 
     public virtual void UpdateHPBar()
@@ -192,8 +207,20 @@ public class Actor : MonoBehaviour
         ));
     }
 
-    public virtual void Dead()
-    {
-        characterAction.DeadAction();
-    }
+    //public virtual void Dead()
+    //{
+    //    characterAction.Dead();
+    //    if (this.gameObject.tag == "Enemy")
+    //    {
+    //        EnemyManager.instance.characterList.RemoveAt(this.m_position - 1);
+    //        EnemyManager.instance.SetPositions(EnemyManager.instance.characterList);
+    //        Commander.instance.narrator.Narrate("Singular Strike...!!");
+    //    }
+    //    else
+    //    {
+    //        PlayerManager.instance.characterList.RemoveAt(this.m_position - 1);
+    //        PlayerManager.instance.SetPositions(PlayerManager.instance.characterList);
+    //        Commander.instance.narrator.Narrate("Slowly, gently...life is taken...");
+    //    }
+    //}
 }

@@ -23,6 +23,7 @@ public class Commander : MonoBehaviour
     // Ref
     public GameObject goal;
     public GameObject deathIconPrefab;
+    Button restartBtn;
 
     // Overall Gameplay Control
     bool m_hasLevelStarted = false;
@@ -252,11 +253,12 @@ public class Commander : MonoBehaviour
     IEnumerator LoseLevelRoutine()
     {
         m_isGameOver = true;
-        narrator.Narrate("Your team failed to survive");
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(1f);
+        UIManager.instance.EndUIShield();
+        m_isGamePlaying = false;
 
-        if(loseLevelEvent != null)
+        if (loseLevelEvent != null)
         {
             loseLevelEvent.Invoke();
         }
@@ -264,7 +266,7 @@ public class Commander : MonoBehaviour
         yield return new WaitForSeconds(2f);
         Debug.Log("Game Over !===================");
 
-        RestartLevel();
+        //RestartLevel();
     }
 
     void FinishBattle()
@@ -278,7 +280,7 @@ public class Commander : MonoBehaviour
             t.btn.interactable = true;
         }
 
-        actorList.Clear();
+
         EnableInput(true);
     }
 
@@ -288,6 +290,7 @@ public class Commander : MonoBehaviour
         // Check with list number
         if (EnemyManager.instance.characterList.Count == 0)
         {
+            Debug.Log("All Enemies are dead");
             return true;
         }
         return false;
@@ -298,6 +301,7 @@ public class Commander : MonoBehaviour
         // Check with list number
         if (PlayerManager.instance.characterList.Count == 0)
         {
+            Debug.Log("All Characters are dead");
             return true;
         }
         return false;
@@ -315,8 +319,14 @@ public class Commander : MonoBehaviour
     }
 
     // Restart te current level
-    void RestartLevel()
+    public void RestartLevel()
     {
+        var temp = Object.FindObjectsOfType<Actor>();
+        foreach(var t in temp)
+        {
+            Destroy(t.gameObject);
+        }
+
         Scene scene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(scene.name);
     }

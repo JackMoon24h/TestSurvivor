@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyManager : DeckManager
+public class EnemyManager : MonoBehaviour
 {
     public static EnemyManager instance;
     public static float spacing = 3.5f;
@@ -17,10 +17,13 @@ public class EnemyManager : DeckManager
     public List<BaseEnemy> characterList = new List<BaseEnemy>();
     public BaseEnemy activeCharacter;
     public GameObject clickedObject;
-    public BaseSkill activeCommand;
+    public float swapSpeed = 0.6f;
+
+    public List<BaseCharacter> unfriendlyTargets = new List<BaseCharacter>();
+    public List<BaseEnemy> friendlyTargets = new List<BaseEnemy>();
 
     // Exclusive Parameters
-    
+
 
     private void Awake()
     {
@@ -62,6 +65,7 @@ public class EnemyManager : DeckManager
             if (t.enemyPrefabs[i] != null)
             {
                 var enemy = Instantiate(t.enemyPrefabs[i]);
+                enemy.name = "Walker" + (i + 1);
                 enemy.transform.SetParent(this.transform);
 
                 var enemyCompo = enemy.GetComponent<BaseEnemy>();
@@ -74,18 +78,45 @@ public class EnemyManager : DeckManager
                 enemyCompo.cursor.SetActive(false);
             }
         }
-        SetPositions(characterList);
-        Debug.Log("Enemy has been deployed");
+        InitialSetPosition(characterList);
+    }
+
+    void InitialSetPosition(List<BaseEnemy> eList)
+    {
+        for (int i = 0; i < eList.Count; i++)
+        {
+            if (eList[i] != null)
+            {
+                eList[i].Position = i + 1;
+                eList[i].transform.localPosition = EnemyManager.positions[i];
+            }
+        }
     }
 
     public void SetPositions(List<BaseEnemy> cList)
     {
+        if (Commander.instance.IsBattle)
+        {
+            Commander.instance.IsActing = true;
+        }
+
         for (int i = 0; i < cList.Count; i++)
         {
-            if (cList[i] != null)
+            if (cList[i].transform.localPosition.x != EnemyManager.positions[i].x)
             {
+                // Move GameObjects
+                iTween.MoveTo(cList[i].gameObject, iTween.Hash(
+                    "x", EnemyManager.positions[i].x,
+                    "time", swapSpeed,
+                    "isLocal", true,
+                    "easetype", iTween.EaseType.easeOutExpo
+                ));
+
+                // Set Position
                 cList[i].Position = i + 1;
-                cList[i].transform.localPosition = EnemyManager.positions[i];
+
+                // Change its transform in the hierarchy
+                cList[i].transform.SetSiblingIndex(i);
             }
         }
     }
@@ -112,8 +143,6 @@ public class EnemyManager : DeckManager
 
         activeCharacter.isActive = true;
         activeCharacter.cursor.SetActive(true);
-
-        Commander.instance.narrator.Narrate(activeCharacter.Name + " is attacking...!");
     }
 
     public BaseEnemy GetCharacterAtPos(int number)
@@ -132,6 +161,201 @@ public class EnemyManager : DeckManager
         activeCharacter = null;
     }
 
+    public void DrawTargets(BaseSkill activeSkill)
+    {
+        switch (activeSkill.skillRange)
+        {
+            case SkillRange.Unfriendly:
+                ClearUnfriendlyTargets();
+                int rand = Random.Range(0, activeSkill.targetPositions.Length);
+
+                for (int i = 0; i < PlayerManager.instance.characterList.Count; i++)
+                {
+                    if (activeSkill.targetPositions[i])
+                    {
+                        PlayerManager.instance.characterList[i].targetCursor.SetActive(true);
+                        PlayerManager.instance.characterList[i].isTargeted = true;
+                        unfriendlyTargets.Add(PlayerManager.instance.characterList[i]);
+                    }
+                }
+                Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.ConfirmTarget;
+                break;
+
+
+            case SkillRange.Friendly:
+                ClearFriendlyTargets();
+
+                for (int i = 0; i < EnemyManager.instance.characterList.Count; i++)
+                {
+                    if (activeSkill.targetPositions[i])
+                    {
+                        EnemyManager.instance.characterList[i].targetCursor.SetActive(true);
+                        EnemyManager.instance.characterList[i].isTargeted = true;
+                        friendlyTargets.Add(EnemyManager.instance.characterList[i]);
+                    }
+                }
+                Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.ConfirmTarget;
+
+                break;
+
+            case SkillRange.Self:
+                ClearUnfriendlyTargets();
+
+                activeCharacter.targetCursor.SetActive(true);
+                activeCharacter.isTargeted = true;
+                friendlyTargets.Add(activeCharacter);
+                Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.ConfirmTarget;
+                break;
+            default:
+                break;
+        }
+    }
+
+    void ClearUnfriendlyTargets()
+    {
+        foreach (var t in unfriendlyTargets)
+        {
+            t.targetCursor.SetActive(false);
+            t.isTargeted = false;
+        }
+
+        unfriendlyTargets.Clear();
+    }
+
+    void ClearFriendlyTargets()
+    {
+        foreach (var t in friendlyTargets)
+        {
+            t.targetCursor.SetActive(false);
+            t.isTargeted = false;
+        }
+
+        friendlyTargets.Clear();
+    }
+
+    void ClearSwapTargets()
+    {
+        foreach (var t in characterList)
+        {
+            t.isSwapTarget = false;
+            t.targetCursor.SetActive(false);
+        }
+    }
+
+    public void ConfirmAllyTarget(BaseEnemy selectedTarget)
+    {
+        Commander.instance.turnStateMachine.HasConfirmedCommand = true;
+
+        switch (activeCharacter.activeCommand.skillType)
+        {
+            case SkillType.SingleTarget:
+                activeCharacter.CastToAlly(activeCharacter.activeCommand, selectedTarget);
+
+                ClearFriendlyTargets();
+                break;
+            case SkillType.MultipleTarget:
+                activeCharacter.CastToAllies(activeCharacter.activeCommand, friendlyTargets);
+
+                ClearFriendlyTargets();
+                break;
+        }
+    }
+
+    public void ConfirmEnemyTarget(BaseCharacter selectedTarget)
+    {
+        Commander.instance.turnStateMachine.HasConfirmedCommand = true;
+
+        switch (activeCharacter.activeCommand.skillType)
+        {
+            case SkillType.SingleTarget:
+                activeCharacter.CastToEnemy(activeCharacter.activeCommand, selectedTarget);
+
+                ClearUnfriendlyTargets();
+                break;
+
+            case SkillType.MultipleTarget:
+                activeCharacter.CastToEnemies(activeCharacter.activeCommand, unfriendlyTargets);
+
+                ClearUnfriendlyTargets();
+                break;
+            default:
+                break;
+        }
+    }
+
+    // Swap Positions
+
+    public void Swap(List<BaseEnemy> sList, int activePos, int targetPos)
+    {
+        StartCoroutine(SwapRoutine(sList, activePos, targetPos));
+    }
+
+    IEnumerator SwapRoutine(List<BaseEnemy> sList, int activePos, int targetPos)
+    {
+        if (Commander.instance.IsBattle)
+        {
+            Commander.instance.turnStateMachine.HasConfirmedCommand = true;
+        }
+
+        UIManager.instance.BeginUIShield();
+        // 1. Update character list
+        var t = sList[activePos - 1];
+        sList[activePos - 1] = sList[targetPos - 1];
+        sList[targetPos - 1] = t;
+
+        SetPositions(sList);
+
+        ClearSwapTargets();
+
+        yield return new WaitForSeconds(swapSpeed);
+
+        if (Commander.instance.IsBattle)
+        {
+            Commander.instance.IsActing = false;
+        }
+        else
+        {
+            UIManager.instance.EndUIShield();
+        }
+    }
+
+    // This function will be called by button clicking
+    public void DrawSwapPositions()
+    {
+        if (EnemyManager.instance.characterList.Count == 1)
+        {
+            Commander.instance.turnStateMachine.SkipTurn();
+            return;
+        }
+        ClearUnfriendlyTargets();
+        ClearFriendlyTargets();
+
+        var frontPos = activeCharacter.Position - 1;
+        var backPos = activeCharacter.Position + 1;
+
+        if (frontPos > 0)
+        {
+            var target = GetCharacterAtPos(frontPos);
+            target.targetCursor.SetActive(true);
+            target.isSwapTarget = true;
+        }
+
+        if (backPos < 5)
+        {
+            var target = GetCharacterAtPos(backPos);
+            target.targetCursor.SetActive(true);
+            target.isSwapTarget = true;
+        }
+
+        if (Commander.instance.IsBattle)
+        {
+            Commander.instance.turnStateMachine.currentTurnState = TurnStateMachine.TurnState.ConfirmTarget;
+        }
+
+        EnemyManager.instance.activeCharacter.activeCommand = null;
+    }
+
+
     public void PlayTurn()
     {
         StartCoroutine(PlayTurnRoutine());
@@ -142,22 +366,33 @@ public class EnemyManager : DeckManager
         yield return new WaitForSeconds(0.5f);
 
         EnemyManager.instance.activeCharacter.ChooseCommand();
-        Commander.instance.narrator.Narrate(EnemyManager.instance.activeCommand.skillName);
 
-        yield return new WaitForSeconds(1f);
-        // Set Target
-        if(EnemyManager.instance.activeCommand.skillRange == SkillRange.Unfriendly)
+        Commander.instance.narrator.Narrate(EnemyManager.instance.activeCharacter.activeCommand.skillName);
+
+        while (Commander.instance.narrator.IsNarrating)
         {
-
+            yield return null;
         }
 
-        Commander.instance.turnStateMachine.HasConfirmedCommand = true;
+        // Set Target
+        DrawTargets(EnemyManager.instance.activeCharacter.activeCommand);
+        yield return new WaitForSeconds(0.7f);
 
-        // Choose Available Command
+        switch(EnemyManager.instance.activeCharacter.activeCommand.skillRange)
+        {
+            case SkillRange.Unfriendly:
+                int randU = Random.Range(0, unfriendlyTargets.Count);
+                ConfirmEnemyTarget(unfriendlyTargets[randU]);
+                break;
+            case SkillRange.Friendly:
+                int randF = Random.Range(0, friendlyTargets.Count);
+                ConfirmAllyTarget(friendlyTargets[randF]);
+                break;
+            case SkillRange.Self:
+                ConfirmAllyTarget(activeCharacter);
+                break;
+        }
 
-
-        // Select Target
-        // Do Action
         yield return null;
     }
 

@@ -8,6 +8,6 @@ public class HellfireBrew : BaseSkill
     {
         base.Excute(target);
 
-        targetActor.ReceiveDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
+        targetActor.TakeDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
     }
 }

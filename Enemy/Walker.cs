@@ -18,7 +18,7 @@ public class Walker : BaseEnemy
         m_name = "Zombie";
         m_maxHealth = 17;
         m_health = m_maxHealth;
-        m_damage = 6;
+        m_damage = 25;
         m_protection = 2;
         m_speed = 7;
         m_accuracy = 10;
