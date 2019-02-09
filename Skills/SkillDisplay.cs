@@ -48,7 +48,7 @@ public class SkillDisplay : MonoBehaviour
     public void UpdateSkillInfo(BaseCharacter updateTarget)
     {
         thisSkill = updateTarget.skillManager.GetSkill(thisSkillNumber);
-
+        thisCharacter = updateTarget;
         thisSkillName.text = thisSkill.skillName;
         thisSkillIcon.sprite = thisSkill.skillIcon;
         //thisSkillDescription.text = thisSkill.skillDescription;
@@ -95,7 +95,7 @@ public class SkillDisplay : MonoBehaviour
     // Called when the command btn is clickeda
     public void OnClickEvent()
     {
-        if(m_isAvailable)
+        if(m_isAvailable && thisCharacter.isActive)
         {
             // DrawTargets
             PlayerManager.instance.DrawTargets(thisSkill);

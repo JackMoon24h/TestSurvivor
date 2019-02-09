@@ -55,9 +55,13 @@ public class BaseSkill : MonoBehaviour
     public int dmgMode;
 
     public Actor targetActor;
-
+    public float delay = 2f;
     public bool canCrit = false; // Whether it can crit or not
     public List<SkillEffect> effects = new List<SkillEffect>();
+
+    public bool hasMainEffect;
+    public bool hasSubEffect;
+    public PhysicalEffectType subEffectType;
 
     // Public method to set the values in the skill ui
     public virtual void SetValues(GameObject skillDisplayObject)
@@ -74,9 +78,6 @@ public class BaseSkill : MonoBehaviour
 
     public virtual void Excute(GameObject target)
     {
-
-        // Instantiate common damage effects
-
         if(target.tag == "Enemy")
         {
             targetActor = target.GetComponent<BaseEnemy>();

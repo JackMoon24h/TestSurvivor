@@ -324,7 +324,7 @@ public class EnemyManager : MonoBehaviour
     {
         if (EnemyManager.instance.characterList.Count == 1)
         {
-            Commander.instance.turnStateMachine.SkipTurn();
+            Commander.instance.turnStateMachine.IsSkipTurn = true;
             return;
         }
         ClearUnfriendlyTargets();
@@ -366,6 +366,10 @@ public class EnemyManager : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         EnemyManager.instance.activeCharacter.ChooseCommand();
+        if(Commander.instance.turnStateMachine.IsSkipTurn)
+        {
+            yield break;
+        }
 
         Commander.instance.narrator.Narrate(EnemyManager.instance.activeCharacter.activeCommand.skillName);
 
@@ -393,7 +397,7 @@ public class EnemyManager : MonoBehaviour
                 break;
         }
 
-        yield return null;
+        yield return new WaitForSeconds(0.2f);
     }
 
 

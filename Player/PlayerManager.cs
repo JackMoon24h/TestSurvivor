@@ -52,7 +52,7 @@ public class PlayerManager : MonoBehaviour
         Initialize();
     }
 
-    private void Initialize()
+    public void Initialize()
     {
         // If character List is empty, then Instantiate default character setting
         if(characterList.Count == 0)
@@ -67,7 +67,6 @@ public class PlayerManager : MonoBehaviour
                     characterList.Add(survivor.GetComponent<BaseCharacter>());
                 }
             }
-            Debug.Log("Character List has been made by default setting");
         }
 
         SetPositions(characterList);
@@ -231,11 +230,12 @@ public class PlayerManager : MonoBehaviour
             ClearSwapTargets();
         }
 
+        ClearUnfriendlyTargets();
+        ClearFriendlyTargets();
+
         switch (activeSkill.skillRange)
         {
             case SkillRange.Unfriendly:
-
-                ClearUnfriendlyTargets();
 
                 for (int i = 0; i < EnemyManager.instance.characterList.Count; i++)
                 {
@@ -251,7 +251,6 @@ public class PlayerManager : MonoBehaviour
 
 
             case SkillRange.Friendly:
-                ClearFriendlyTargets();
 
                 for (int i = 0; i < PlayerManager.instance.characterList.Count; i++)
                 {
@@ -267,7 +266,6 @@ public class PlayerManager : MonoBehaviour
                 break;
 
             case SkillRange.Self:
-                ClearUnfriendlyTargets();
 
                 activeCharacter.targetCursor.SetActive(true);
                 activeCharacter.isTargeted = true;
@@ -410,7 +408,7 @@ public class PlayerManager : MonoBehaviour
             target.isSwapTarget = true;
         }
 
-        if(backPos < 5)
+        if(backPos < PlayerManager.instance.characterList.Count + 1)
         {
             var target = GetCharacterAtPos(backPos);
             target.targetCursor.SetActive(true);

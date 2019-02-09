@@ -7,11 +7,15 @@ public class UIManager : MonoBehaviour
 {
     // References
     public static UIManager instance;
+    Canvas canvas;
+    public Vector3 correction = new Vector3(0, 200f, 0);
     public List<SkillDisplay> skillDisplays = new List<SkillDisplay>();
     public Image profileImage;
     public Text profileName;
 
     // Set from inspector
+    public GameObject mainPanel;
+    public GameObject commandPanel;
 
     public Image[] playerListIMG = new Image[4];
     public Color pExistColor;
@@ -24,14 +28,26 @@ public class UIManager : MonoBehaviour
     public GameObject UIShield;
     public bool OnUIShield;
 
-    public GameObject actionResultPrefab;
     public int availableSkNum;
+
+    public GameObject damagePrefab;
+    public GameObject criticalPrefab;
+    public GameObject bleedPrefab; // Bleed, Bleed Resist
+    public GameObject infectPrefab; // Infect, Infect Resist
+    public GameObject healPrefab;
+    public GameObject stunPrefab; // Stun, Stun Resist
+    public GameObject resistPrefab; // Resist, Buff
+    public GameObject dodgePrefab; // Dodge, Miss
+    public GameObject mentalPrefab;
+    public GameObject mentalHealPrefab;
+    public GameObject deathPrefab;
 
     // Use this for initialization
     private void Awake()
     {
-        profileImage = this.transform.GetChild(0).GetChild(0).GetComponent<Image>();
-        profileName = this.transform.GetChild(0).GetChild(1).GetComponent<Text>();
+        canvas = GetComponent<Canvas>();
+        profileImage = mainPanel.transform.GetChild(0).GetComponent<Image>();
+        profileName = mainPanel.transform.GetChild(1).GetComponent<Text>();
     }
     void Start () 
     {
@@ -59,6 +75,12 @@ public class UIManager : MonoBehaviour
 
     public void SkillPanelInitilize()
     {
+        // Doing this for loading scene
+        if(skillDisplays.Count > 0)
+        {
+            skillDisplays.Clear();
+        }
+
         skillDisplays.AddRange(GetComponentsInChildren<SkillDisplay>());
         for (int i = 0; i < skillDisplays.Count; i++)
         {
@@ -136,11 +158,102 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void CreateActionResultUI()
+    public void CreateEffect(string effect, Actor target, int amount)
     {
-        if (actionResultPrefab != null)
+        GameObject label;
+
+        switch(effect)
         {
-            var actionResult = Instantiate(actionResultPrefab, Vector3.zero, Quaternion.identity);
+            case "Damage":
+                label = Instantiate(damagePrefab);
+                label.GetComponentInChildren<Text>().text = amount.ToString();
+                break;
+
+            case "Critical":
+                label = Instantiate(criticalPrefab);
+                label.GetComponentInChildren<Text>().text = "Critical!\n" + amount.ToString();
+                break;
+
+            case "Heal":
+                label = Instantiate(healPrefab);
+                label.GetComponentInChildren<Text>().text = amount.ToString();
+                break;
+
+            case "Bleed":
+                label = Instantiate(bleedPrefab);
+                label.GetComponentInChildren<Text>().text = "BLEED";
+                break;
+
+            case "BleedResist":
+                label = Instantiate(bleedPrefab);
+                label.GetComponentInChildren<Text>().text = "RESIST";
+                break;
+
+            case "Infect":
+                label = Instantiate(infectPrefab);
+                label.GetComponentInChildren<Text>().text = "INFECT";
+                break;
+
+            case "InfectResist":
+                label = Instantiate(infectPrefab);
+                label.GetComponentInChildren<Text>().text = "RESIST";
+                break;
+
+            case "Stun":
+                label = Instantiate(stunPrefab);
+                label.GetComponentInChildren<Text>().text = "STUN!";
+                break;
+
+            case "StunResist":
+                label = Instantiate(stunPrefab);
+                label.GetComponentInChildren<Text>().text = "RESIST";
+                break;
+
+            case "Resist":
+                label = Instantiate(resistPrefab);
+                label.GetComponentInChildren<Text>().text = "RESIST";
+                break;
+
+            case "Buff":
+                label = Instantiate(resistPrefab);
+                label.GetComponentInChildren<Text>().text = "BUFF";
+                break;
+
+            case "Dodge":
+                label = Instantiate(dodgePrefab);
+                label.GetComponentInChildren<Text>().text = "DODGE!";
+                break;
+
+            case "Death":
+                label = Instantiate(deathPrefab);
+                label.GetComponentInChildren<Text>().text = "DEATH";
+                break;
+
+            // When mental is broken
+            case "MentalDamage":
+                label = Instantiate(mentalPrefab);
+                label.GetComponentInChildren<Text>().text = "MENTAL\n" + amount.ToString();
+                break;
+
+            case "MentalHeal":
+                label = Instantiate(mentalHealPrefab);
+                label.GetComponentInChildren<Text>().text = amount.ToString();
+                break;
+
+            case "Refusal":
+                label = Instantiate(mentalPrefab);
+                label.GetComponentInChildren<Text>().text = "Refusal..";
+                break;
+
+            default:
+                label = Instantiate(damagePrefab);
+                label.GetComponentInChildren<Text>().text = amount.ToString();
+                break;
         }
+
+        label.transform.SetParent(canvas.gameObject.transform);
+        var rand = Random.Range(0.95f, 1.15f);
+        Vector2 screenPos = Camera.main.WorldToScreenPoint(target.transform.position) + correction * rand;
+        label.transform.position = screenPos;
     }
 }

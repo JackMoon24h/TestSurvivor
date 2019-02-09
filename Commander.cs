@@ -22,7 +22,6 @@ public class Commander : MonoBehaviour
 
     // Ref
     public GameObject goal;
-    public GameObject deathIconPrefab;
     Button restartBtn;
 
     // Overall Gameplay Control
@@ -47,6 +46,11 @@ public class Commander : MonoBehaviour
     public bool IsActing { get { return m_isActing; } set { m_isActing = value; } }
 
     public List<Actor> actorList = new List<Actor>();
+    public List<Trigger> triggers = new List<Trigger>();
+
+
+    // Set in the inspector
+    public List<GameObject> physicalEffectPrefabs;
 
     // Unity Events
     public UnityEvent setupEvent;
@@ -63,18 +67,15 @@ public class Commander : MonoBehaviour
     private void Awake()
     {
         MakeSingleton();
-
-        goal = GameObject.FindWithTag("Goal");
-        rightBorder = goal.transform.position.x;
-        turnStateMachine = GetComponent<TurnStateMachine>();
-        mainCamera = Camera.main;
-        narrator = GetComponent<Narrator>();
-        touchInput = mainCamera.GetComponent<TouchInput>();
+        Initialize();
     }
 
     // Use this for initialization
     void Start () 
     {
+        // SceneManager.sceneLoaded will be called between Awake() and Start()
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
         if(Commander.instance && PlayerManager.instance)
         {
             StartCoroutine("RunGameLoop");
@@ -89,6 +90,40 @@ public class Commander : MonoBehaviour
     void Update () 
     {
         
+    }
+
+    void Initialize()
+    {
+        goal = GameObject.FindWithTag("Goal");
+        rightBorder = goal.transform.position.x;
+        turnStateMachine = GetComponent<TurnStateMachine>();
+        mainCamera = Camera.main;
+        narrator = GetComponent<Narrator>();
+        touchInput = mainCamera.GetComponent<TouchInput>();
+        triggers.AddRange(Object.FindObjectsOfType<Trigger>());
+        foreach(var t in triggers)
+        {
+            t.gameObject.SetActive(true);
+        }
+    }
+
+    // This will be called when scene is loaded (except first scene)
+    void OnSceneLoaded(Scene scene, LoadSceneMode sceneMode)
+    {
+        var actors = Object.FindObjectsOfType<Actor>();
+        foreach(var t in actors)
+        {
+            Destroy(t.gameObject);
+        }
+
+        UIManager.instance.mainPanel.SetActive(true);
+        UIManager.instance.commandPanel.SetActive(true);
+
+        Initialize();
+        Commander.instance.setupEvent.Invoke();
+        PlayerManager.instance.Initialize();
+
+        PlayerManager.instance.transform.position = Vector3.zero;
     }
 
     void MakeSingleton()
@@ -204,7 +239,7 @@ public class Commander : MonoBehaviour
         PlayerManager.instance.ClearActiveCharacter();
         EnemyManager.instance.Deploy(t);
 
-        Destroy(t.gameObject);
+        t.gameObject.SetActive(false);
 
         // Show battle screen
 
@@ -272,6 +307,7 @@ public class Commander : MonoBehaviour
     void FinishBattle()
     {
         // Give some rewards
+        narrator.Narrate("Survived...");
         // Enable Input again
         Debug.Log("Battle Finished");
         foreach(var t in UIManager.instance.skillDisplays)
@@ -321,12 +357,6 @@ public class Commander : MonoBehaviour
     // Restart te current level
     public void RestartLevel()
     {
-        var temp = Object.FindObjectsOfType<Actor>();
-        foreach(var t in temp)
-        {
-            Destroy(t.gameObject);
-        }
-
         Scene scene = SceneManager.GetActiveScene();
         SceneManager.LoadScene(scene.name);
     }

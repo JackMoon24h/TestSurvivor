@@ -42,6 +42,8 @@ public class Actor : MonoBehaviour
     public bool isTargeted = false;
     public bool isSwapTarget = false;
 
+    public float setEffectDelay = 0.5f;
+
     // Common Parameters
     protected int m_level;
     public int Level { get { return m_level; } set { m_level = value; } }
@@ -75,17 +77,17 @@ public class Actor : MonoBehaviour
     public float Critical { get { return m_critical; } set { m_critical = value; } }
 
     // Common Resistances
-    protected int m_bleedRes;
-    public int BleedRes { get { return m_bleedRes; } set { m_bleedRes = value; } }
+    protected float m_bleedRes;
+    public float BleedRes { get { return m_bleedRes; } set { m_bleedRes = value; } }
 
-    protected int m_infectRes;
-    public int InfectRes { get { return m_infectRes; } set { m_infectRes = value; } }
+    protected float m_infectRes;
+    public float InfectRes { get { return m_infectRes; } set { m_infectRes = value; } }
 
-    protected int m_stunRes;
-    public int StunRes { get { return m_stunRes; } set { m_stunRes = value; } }
+    protected float m_stunRes;
+    public float StunRes { get { return m_stunRes; } set { m_stunRes = value; } }
 
-    protected int m_moveRes;
-    public int MoveRes { get { return m_moveRes; } set { m_moveRes = value; } }
+    protected float m_moveRes;
+    public float MoveRes { get { return m_moveRes; } set { m_moveRes = value; } }
 
 
     public BaseSkill activeCommand;
@@ -93,20 +95,28 @@ public class Actor : MonoBehaviour
     // Physical Effects
     public List<PhysicalEffect> physicalEffects = new List<PhysicalEffect>();
 
-    bool m_isBleeding;
-    public bool IsBleeding { get { return m_isBleeding; } set { m_isBleeding = value; } }
+    int m_bleedEffects;
+    public int BleedEffects { get { return m_bleedEffects; } set { m_bleedEffects = value; } }
 
-    bool m_isInfected;
-    public bool IsInfected { get { return m_isInfected; } set { m_isInfected = value; } }
+    int m_infectEffects;
+    public int InfectEffects { get { return m_infectEffects; } set { m_infectEffects = value; } }
 
-    bool m_isStunned;
-    public bool IsStunned { get { return m_isStunned; } set { m_isStunned = value; } }
+    int m_buffEffects;
+    public int BuffEffects { get { return m_buffEffects; } set { m_buffEffects = value; } }
+
+    int m_stunEffects;
+    public int StunEffects { get { return m_stunEffects; } set { m_stunEffects = value; } }
+
+    // For Handle Effects
+    bool m_isSubActionOver = true;
+    public bool IsSubActionOver { get { return m_isSubActionOver; } set { m_isSubActionOver = value; } }
 
     protected virtual void Awake()
     {
         characterAction = GetComponent<CharacterAction>();
         skillManager = GetComponent<SkillManager>();
         col = GetComponent<BoxCollider2D>();
+        m_isSubActionOver = true;
     }
 
     public virtual void CastToEnemy(BaseSkill activeSkill, BaseEnemy target)
@@ -181,6 +191,13 @@ public class Actor : MonoBehaviour
         var actualDMG = (int)Mathf.Round(dmg / this.m_protection);
         this.m_health -= actualDMG;
 
+        UIManager.instance.CreateEffect("Damage", this, actualDMG);
+
+        DeathCheck();
+    }
+
+    void DeathCheck()
+    {
         if (this.m_health <= 0)
         {
             this.m_health = 0;
@@ -202,25 +219,145 @@ public class Actor : MonoBehaviour
             "x", ratio,
             "isLocal", true,
             "easetype", iTween.EaseType.easeInQuart,
-            "time", 1f,
-            "delay", 0.5f
+            "time", 1.2f,
+            "delay", 0.6f
         ));
     }
 
-    //public virtual void Dead()
-    //{
-    //    characterAction.Dead();
-    //    if (this.gameObject.tag == "Enemy")
-    //    {
-    //        EnemyManager.instance.characterList.RemoveAt(this.m_position - 1);
-    //        EnemyManager.instance.SetPositions(EnemyManager.instance.characterList);
-    //        Commander.instance.narrator.Narrate("Singular Strike...!!");
-    //    }
-    //    else
-    //    {
-    //        PlayerManager.instance.characterList.RemoveAt(this.m_position - 1);
-    //        PlayerManager.instance.SetPositions(PlayerManager.instance.characterList);
-    //        Commander.instance.narrator.Narrate("Slowly, gently...life is taken...");
-    //    }
-    //}
+    public void TakePhysicalEffect(PhysicalEffectType type, int pow, int dur)
+    {
+        StartCoroutine(PhysicalEffectRoutine(type, pow, dur));
+    }
+
+    IEnumerator PhysicalEffectRoutine(PhysicalEffectType type, int pow, int dur)
+    {
+        m_isSubActionOver = false;
+        while (Commander.instance.IsActing)
+        {
+            yield return null;
+        }
+
+        var typeNumber = (int)type;
+
+        var effect = Instantiate(Commander.instance.physicalEffectPrefabs[typeNumber]).GetComponent<PhysicalEffect>();
+        effect.SetEffect(pow, dur, this);
+        effect.gameObject.transform.SetParent(this.gameObject.transform);
+
+        yield return new WaitForSeconds(setEffectDelay);
+
+        this.SetPhysicalEffect(effect);
+
+        m_isSubActionOver = true;
+    }
+   
+
+    void SetPhysicalEffect(PhysicalEffect effect)
+    {
+        physicalEffects.Add(effect);
+        effect.owner = this;
+        effect.gameObject.transform.SetParent(this.gameObject.transform);
+
+        switch (effect.physicalEffectType)
+        {
+            case PhysicalEffectType.Bleed:
+                m_bleedEffects += effect.Amount;
+                break;
+            case PhysicalEffectType.Infect:
+                m_infectEffects += effect.Amount;
+                break;
+            case PhysicalEffectType.Stun:
+
+                // Stun cannot be dupilicated
+                if (m_stunEffects == 0)
+                {
+                    m_stunEffects++;
+                }
+                break;
+            case PhysicalEffectType.Buff:
+                m_buffEffects++;
+                break;
+            default:
+                break;
+        }
+        UIManager.instance.CreateEffect(effect.Name, this, effect.Amount);
+    }
+
+    // Removing elements in iteration must be performed outside of foreach loop. Store its index and then delete it later.
+    public void RemovePhysicalEffect(PhysicalEffect effect)
+    {
+        switch (effect.physicalEffectType)
+        {
+            case PhysicalEffectType.Bleed:
+                m_bleedEffects -= effect.Amount;
+                break;
+            case PhysicalEffectType.Infect:
+                m_infectEffects -= effect.Amount;
+                break;
+            case PhysicalEffectType.Stun:
+                if(m_stunEffects > 0)
+                {
+                    m_stunEffects--;
+                }
+                break;
+            case PhysicalEffectType.Buff:
+                m_buffEffects--;
+                break;
+            default:
+                break;
+        }
+        //physicalEffects.Remove(effect);
+        //Destroy(effect.gameObject);
+    }
+
+    public void OnTurnStart()
+    {
+        StartCoroutine(OnTurnStartRoutine());
+    }
+
+    IEnumerator OnTurnStartRoutine()
+    {
+        m_isSubActionOver = false;
+
+        var dmgSum = m_bleedEffects + m_infectEffects;
+        this.m_health -= dmgSum;
+
+        if (dmgSum > 0)
+        {
+            UIManager.instance.CreateEffect("Damage", this, dmgSum);
+            DeathCheck();
+
+            while(Commander.instance.IsActing)
+            {
+                yield return null;
+            }
+
+            if (this.gameObject == null || this.isDead)
+            {
+                yield break;
+            }
+        }
+
+        yield return new WaitForSeconds(0.2f);
+
+        if (m_stunEffects > 0)
+        {
+            Commander.instance.turnStateMachine.IsSkipTurn = true;
+        }
+
+        var indexList = new List<int>();
+        foreach (var t in physicalEffects)
+        {
+            t.UpdateDuration(indexList);
+        }
+
+        foreach(var t in indexList)
+        {
+            Destroy(physicalEffects[t].gameObject);
+            physicalEffects.RemoveAt(t);
+        }
+
+        // Random Behavior
+
+        m_isSubActionOver = true;
+    }
 }

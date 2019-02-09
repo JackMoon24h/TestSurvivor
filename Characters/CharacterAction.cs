@@ -7,8 +7,6 @@ public class CharacterAction : MonoBehaviour
     protected Animator animator;
     protected GameObject body;
 
-    public bool isActing = false;
-
     public float baseMoveSpace = 1f;
     public float correctionSpace = 3f;
     public float targetMoveSpace = 5f;
@@ -39,8 +37,10 @@ public class CharacterAction : MonoBehaviour
     protected CameraController subCameraController;
     protected Actor actor;
 
-	// Use this for initialization
-	protected virtual void Start () 
+
+
+    // Use this for initialization
+    protected virtual void Start () 
     {
         actor = GetComponent<Actor>();
         animator = GetComponent<Animator>();
@@ -315,6 +315,30 @@ public class CharacterAction : MonoBehaviour
 
     public IEnumerator DeadRoutine()
     {
+        if(Commander.instance.turnStateMachine.currentTurnState == TurnStateMachine.TurnState.WaitForCommand)
+        {
+            Commander.instance.IsActing = true;
+            animator.SetTrigger("Dead");
+
+            yield return new WaitForSeconds(1f);
+
+            if (this.gameObject.tag == "Enemy")
+            {
+                EnemyManager.instance.characterList.RemoveAt(this.actor.Position - 1);
+                EnemyManager.instance.SetPositions(EnemyManager.instance.characterList);
+            }
+            else
+            {
+                PlayerManager.instance.characterList.RemoveAt(this.actor.Position - 1);
+                PlayerManager.instance.SetPositions(PlayerManager.instance.characterList);
+            }
+
+            Destroy(this.gameObject);
+            Commander.instance.IsActing = false;
+
+            yield break;
+        }
+
         SwitchLayer("Actor");
         animator.SetTrigger("Dead");
 
@@ -340,13 +364,11 @@ public class CharacterAction : MonoBehaviour
         {
             EnemyManager.instance.characterList.RemoveAt(this.actor.Position - 1);
             EnemyManager.instance.SetPositions(EnemyManager.instance.characterList);
-            Commander.instance.narrator.Narrate("Singular Strike...!!");
         }
         else
         {
             PlayerManager.instance.characterList.RemoveAt(this.actor.Position - 1);
             PlayerManager.instance.SetPositions(PlayerManager.instance.characterList);
-            Commander.instance.narrator.Narrate("Slowly, gently...life is taken...");
         }
 
         Destroy(this.gameObject);

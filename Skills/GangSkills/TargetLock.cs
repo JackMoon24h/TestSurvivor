@@ -8,6 +8,12 @@ public class TargetLock : BaseSkill
     {
         base.Excute(target);
 
-        //targetActor.ReceiveDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
+        // 1. Main Effect with character's basic action
+        targetActor.TakeDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
+
+        // 2. SubEffect
+        targetActor.TakePhysicalEffect(PhysicalEffectType.Bleed, 2, 3);
     }
+
+
 }

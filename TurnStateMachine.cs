@@ -41,6 +41,9 @@ public class TurnStateMachine : MonoBehaviour
 
     public List<Actor> queue = new List<Actor>();
 
+    bool m_isSkipTurn;
+    public bool IsSkipTurn { get { return m_isSkipTurn; } set { m_isSkipTurn = value; } }
+
     bool m_hasConfirmedCommand;
     public bool HasConfirmedCommand { get { return m_hasConfirmedCommand; } set { m_hasConfirmedCommand = value; } }
 
@@ -105,25 +108,37 @@ public class TurnStateMachine : MonoBehaviour
 
     IEnumerator StartTurnRoutine()
     {
-        Debug.Log("StartTurnRoutine : Turn / Round " + m_turnCount + " / " + m_round);
-
         // If it is dead then skip turn
         while(queue[m_turnCount - 1] == null)
         {
             yield return new WaitForSeconds(0.5f);
-            SkipTurn();
+            GetNextTurn();
+
         }
+        Debug.Log("StartTurnRoutine : Turn / Round " + m_turnCount + " / " + m_round);
 
         // Get Active Character from queue
         if (queue[m_turnCount - 1].gameObject.tag == "Enemy")
         {
             // Enemy turn
             currentTurn = Turn.ENEMY;
+            currentTurnState = TurnState.WaitForCommand;
             var enemy = (BaseEnemy)queue[m_turnCount - 1];
             enemy.characterAction.ReadyAction();
             EnemyManager.instance.SetActiveCharacter(enemy);
 
-            currentTurnState = TurnState.WaitForCommand;
+            enemy.OnTurnStart();
+            if(enemy == null || enemy.isDead)
+            {
+                m_isSkipTurn = true;
+                yield break;
+            }
+
+            while (!enemy.IsSubActionOver)
+            {
+                yield return null;
+            }
+
             yield return new WaitForSeconds(0.5f);
 
             EnemyManager.instance.PlayTurn();
@@ -132,21 +147,33 @@ public class TurnStateMachine : MonoBehaviour
         {
             // Player turn
             currentTurn = Turn.PLAYER;
+            currentTurnState = TurnState.WaitForCommand;
             var player = (BaseCharacter)queue[m_turnCount - 1];
             player.characterAction.ReadyAction();
             PlayerManager.instance.SetActiveCharacter(player);
-            currentTurnState = TurnState.WaitForCommand;
+
+            player.OnTurnStart();
+
+            if (player == null || player.isDead)
+            {
+                m_isSkipTurn = true;
+                yield break;
+            }
+
+            while (!player.IsSubActionOver)
+            {
+                yield return null;
+            }
 
             // If it is the last one standing in the deck then check if it has available skill
             if(PlayerManager.instance.characterList.Count == 1 && UIManager.instance.availableSkNum == 0)
             {
-                SkipTurn();
+                m_isSkipTurn = true;
+                yield break;
             }
         }
 
-
-
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.6f);
 
         // touchInput should be enabled to true after UI panel has been updated (MUST). Because UI panel should set available skills while players cannot touch each skill
         UIManager.instance.EndUIShield();
@@ -157,6 +184,10 @@ public class TurnStateMachine : MonoBehaviour
         while(!m_hasConfirmedCommand)
         {
             yield return null;
+            if(m_isSkipTurn)
+            {
+                yield break;
+            }
         }
         UIManager.instance.BeginUIShield();
         Commander.instance.turnStateMachine.currentTurnState = TurnState.DoAction;
@@ -164,6 +195,11 @@ public class TurnStateMachine : MonoBehaviour
 
     IEnumerator UpdateTurnRoutine()
     {
+        if(m_isSkipTurn)
+        {
+            yield break;
+        }
+
         Debug.Log("UpdateTurnRoutine");
         if (Commander.instance.actionEvent != null)
         {
@@ -173,29 +209,30 @@ public class TurnStateMachine : MonoBehaviour
 
         while(Commander.instance.IsActing)
         {
-            // Wait until the action is over
+            // Wait until main action is over
             yield return null;
         }
-
-        currentTurnState = TurnState.HandleEffects;
-
-        // Show Damage or Effect animations
-
-        while(!m_hasHandledEffects)
-        {
-            // For Test
-            yield return new WaitForSeconds(0.3f);
-            m_hasHandledEffects = true;
-        }
-
-        // For debugging purpose. Can be deleted later on.
-        UIManager.instance.SetEnemyListtUI();
-        UIManager.instance.SetPlayerListUI();
     }
 
     IEnumerator EndTurnRoutine()
     {
         Debug.Log("EndTurnRoutine");
+        currentTurnState = TurnState.HandleEffects;
+
+        // Show Damage or Effect animations
+
+        while (!m_hasHandledEffects)
+        {
+            yield return null;
+            m_hasHandledEffects = HasAllActorsDone();
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        // For debugging purpose. Can be deleted later on.
+        UIManager.instance.SetEnemyListtUI();
+        UIManager.instance.SetPlayerListUI();
+
         currentTurnState = TurnState.FinishTurn;
         yield return new WaitForSeconds(1f);
 
@@ -208,25 +245,26 @@ public class TurnStateMachine : MonoBehaviour
 
         // Check if it meets battle over conditions after every turn
 
-        if (currentTurn == Turn.PLAYER && Commander.instance.AreEnemiesAllDead())
+        if (Commander.instance.AreEnemiesAllDead())
         {
             // Won. Stop coroutine and finish battle.
             Commander.instance.IsBattle = false;
             yield break;
 
         }
-        else if (currentTurn == Turn.ENEMY && Commander.instance.AreCharactersAllDead())
+        else if (Commander.instance.AreCharactersAllDead())
         {
             // Lose.
             Commander.instance.IsBattle = false;
             Commander.instance.LoseLevel();
             yield break;
         }
-
+        Debug.Log(EnemyManager.instance.characterList.Count);
         Debug.Log("Win or Lose conditions are not met");
 
         m_turnCount++;
         m_turnsInRound = queue.Count;
+        m_isSkipTurn = false;
 
         if(m_turnCount > m_turnsInRound)
         {
@@ -299,9 +337,9 @@ public class TurnStateMachine : MonoBehaviour
         return aList;
     }
 
-    public void SkipTurn()
+    public void GetNextTurn()
     {
-        Debug.Log("Skip Turn");
+        Debug.Log("Get Next Turn");
         this.m_turnCount++;
 
         m_turnsInRound = queue.Count;
@@ -312,5 +350,18 @@ public class TurnStateMachine : MonoBehaviour
             m_round++;
             UpdateRound();
         }
+    }
+
+    bool HasAllActorsDone()
+    {
+        bool result = true;
+        foreach(var t in queue)
+        {
+            if(t != null && !t.IsSubActionOver)
+            {
+                result = false;
+            }
+        }
+        return result;
     }
 }

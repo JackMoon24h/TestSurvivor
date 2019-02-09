@@ -105,7 +105,7 @@ public class BaseEnemy : Actor
 
         if (candidates.Count == 0)
         {
-            EnemyManager.instance.DrawSwapPositions();
+            Commander.instance.turnStateMachine.IsSkipTurn = true;
             return;
         }
 
