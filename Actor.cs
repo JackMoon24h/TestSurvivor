@@ -20,6 +20,16 @@ public class Actor : MonoBehaviour
     }
     public Job job;
 
+    public static Vector2 enemyCorrection = new Vector2(0.5f, 0f);
+    public static float iconSpacing = 0.8f;
+    public static readonly Vector2[] effectsPositions =
+    {
+        new Vector2(-2.7f + iconSpacing * 1, 3f),
+        new Vector2(-2.7f + iconSpacing * 2, 3f),
+        new Vector2(-2.7f + iconSpacing * 3, 3f),
+        new Vector2(-2.7f + iconSpacing * 4, 3f),
+    };
+
     // Assign from the inspector
     public GameObject cursor;
     public GameObject targetCursor;
@@ -90,6 +100,7 @@ public class Actor : MonoBehaviour
     public float MoveRes { get { return m_moveRes; } set { m_moveRes = value; } }
 
 
+
     public BaseSkill activeCommand;
 
     // Physical Effects
@@ -127,7 +138,7 @@ public class Actor : MonoBehaviour
         // Enemy Action
         target.characterAction.Act(activeSkill.skillTargetActionType);
 
-        activeSkill.Excute(target.gameObject);
+        activeSkill.Excute(this, target.gameObject);
     }
 
     public virtual void CastToEnemies(BaseSkill activeSkill, List<BaseEnemy> targets)
@@ -139,7 +150,7 @@ public class Actor : MonoBehaviour
         foreach (var t in targets)
         {
             t.characterAction.Act(activeSkill.skillTargetActionType);
-            activeSkill.Excute(t.gameObject);
+            activeSkill.Excute(this, t.gameObject);
         }
     }
 
@@ -147,7 +158,7 @@ public class Actor : MonoBehaviour
     {
         PlayerManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
-        activeSkill.Excute(gameObject);
+        activeSkill.Excute(this, gameObject);
     }
 
     public virtual void CastToAlly(BaseSkill activeSkill, BaseCharacter target)
@@ -161,7 +172,7 @@ public class Actor : MonoBehaviour
             target.characterAction.Act(activeSkill.skillTargetActionType);
         }
 
-        activeSkill.Excute(target.gameObject);
+        activeSkill.Excute(this, target.gameObject);
     }
 
     public virtual void CastToAllies(BaseSkill activeSkill, List<BaseCharacter> targets)
@@ -176,7 +187,7 @@ public class Actor : MonoBehaviour
             {
                 t.characterAction.Act(activeSkill.skillTargetActionType);
             }
-            activeSkill.Excute(t.gameObject);
+            activeSkill.Excute(this, t.gameObject);
         }
     }
 
@@ -224,7 +235,9 @@ public class Actor : MonoBehaviour
         ));
     }
 
-    public void TakePhysicalEffect(PhysicalEffectType type, int pow, int dur)
+
+
+    public void TakeEffect(PhysicalEffectType type, int pow, int dur)
     {
         StartCoroutine(PhysicalEffectRoutine(type, pow, dur));
     }
@@ -239,9 +252,21 @@ public class Actor : MonoBehaviour
 
         var typeNumber = (int)type;
 
-        var effect = Instantiate(Commander.instance.physicalEffectPrefabs[typeNumber]).GetComponent<PhysicalEffect>();
+        var effectObject = Instantiate(Commander.instance.physicalEffectPrefabs[typeNumber]);
+        effectObject.transform.SetParent(this.gameObject.transform);
+
+        if(this is BaseCharacter)
+        {
+            effectObject.transform.localPosition = effectsPositions[typeNumber];
+        }
+        else
+        {
+            effectObject.transform.localPosition = effectsPositions[typeNumber] + enemyCorrection;
+        }
+
+
+        var effect = effectObject.GetComponent<PhysicalEffect>();
         effect.SetEffect(pow, dur, this);
-        effect.gameObject.transform.SetParent(this.gameObject.transform);
 
         yield return new WaitForSeconds(setEffectDelay);
 
@@ -305,8 +330,6 @@ public class Actor : MonoBehaviour
             default:
                 break;
         }
-        //physicalEffects.Remove(effect);
-        //Destroy(effect.gameObject);
     }
 
     public void OnTurnStart()
@@ -359,5 +382,15 @@ public class Actor : MonoBehaviour
         // Random Behavior
 
         m_isSubActionOver = true;
+    }
+
+    public virtual void TakeMentalDamage(int mentalDmg)
+    {
+
+    }
+
+    public virtual void TakeMentalEffect()
+    {
+
     }
 }

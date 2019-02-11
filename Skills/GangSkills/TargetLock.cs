@@ -4,15 +4,15 @@ using UnityEngine;
 
 public class TargetLock : BaseSkill 
 {
-    public override void Excute(GameObject target)
+    public override void Excute(Actor attacker, GameObject target)
     {
-        base.Excute(target);
+        base.Excute(attacker, target);
 
         // 1. Main Effect with character's basic action
         targetActor.TakeDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
 
         // 2. SubEffect
-        targetActor.TakePhysicalEffect(PhysicalEffectType.Bleed, 2, 3);
+        targetActor.TakeEffect(PhysicalEffectType.Bleed, 2, 3);
     }
 
 

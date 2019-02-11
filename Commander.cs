@@ -10,7 +10,7 @@ public class Commander : MonoBehaviour
 
     public static Commander instance;
     public TurnStateMachine turnStateMachine;
-    Camera mainCamera;
+    public Camera mainCamera;
     public Narrator narrator;
     public TouchInput touchInput;
 
@@ -45,12 +45,16 @@ public class Commander : MonoBehaviour
     bool m_isActing = false;
     public bool IsActing { get { return m_isActing; } set { m_isActing = value; } }
 
+    bool m_isSpeaking = false;
+    public bool IsSpeaking { get { return m_isSpeaking; } set { m_isSpeaking = value; } }
+
     public List<Actor> actorList = new List<Actor>();
     public List<Trigger> triggers = new List<Trigger>();
 
 
     // Set in the inspector
     public List<GameObject> physicalEffectPrefabs;
+    public List<GameObject> afflictionPrefabs;
 
     // Unity Events
     public UnityEvent setupEvent;
@@ -352,6 +356,7 @@ public class Commander : MonoBehaviour
     public void PlayLevel()
     {
         m_hasLevelStarted = true;
+        UIManager.instance.UpdateUIPanel(PlayerManager.instance.activeCharacter);
     }
 
     // Restart te current level
@@ -366,10 +371,5 @@ public class Commander : MonoBehaviour
         actorList.Clear();
         var actors = Object.FindObjectsOfType<Actor>();
         actorList.AddRange(actors);
-    }
-
-    public void CreateUIonObject(GameObject uiPrefab, Vector3 pos)
-    {
-        var t = Instantiate(uiPrefab, pos, Quaternion.identity);
     }
 }

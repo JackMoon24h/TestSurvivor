@@ -17,6 +17,24 @@ public class UIManager : MonoBehaviour
     public GameObject mainPanel;
     public GameObject commandPanel;
 
+    public Text curHpLabel;
+    public Text maxHpLabel;
+    public Text curMpLabel;
+    public Text maxMpLabel;
+    public Text dmgLabel;
+    public Text protLabel;
+    public Text accLabel;
+    public Text dodLabel;
+    public Text critLabel;
+    public Text spdLabel;
+    public Text bleedLabel;
+    public Text infectLabel;
+    public Text stunLabel;
+    public Text moveLabel;
+    public Text virtueLabel;
+    public Text afflictLabel;
+    public Text afflictDesLabel;
+
     public Image[] playerListIMG = new Image[4];
     public Color pExistColor;
     public Color pNotExistColor;
@@ -92,6 +110,37 @@ public class UIManager : MonoBehaviour
     {
         this.profileImage.sprite = updateTarget.profileImage;
         this.profileName.text = updateTarget.gameObject.name;
+        this.curHpLabel.text = updateTarget.Health.ToString();
+        this.maxHpLabel.text = updateTarget.MaxHealth.ToString();
+        this.curMpLabel.text = updateTarget.Mental.ToString();
+        this.maxMpLabel.text = updateTarget.MaxMental.ToString();
+        this.dmgLabel.text = updateTarget.Damage.ToString();
+        this.protLabel.text = updateTarget.Protection.ToString();
+        this.accLabel.text = updateTarget.Accuracy.ToString();
+        this.dodLabel.text = updateTarget.Dodge.ToString();
+        this.critLabel.text = updateTarget.Critical.ToString();
+        this.spdLabel.text = updateTarget.Speed.ToString();
+        this.bleedLabel.text = updateTarget.BleedRes.ToString();
+        this.infectLabel.text = updateTarget.InfectRes.ToString();
+        this.stunLabel.text = updateTarget.StunRes.ToString();
+        this.moveLabel.text = updateTarget.MoveRes.ToString();
+        this.virtueLabel.text = updateTarget.Virtue.ToString();
+
+        if(updateTarget.IsAfflicted)
+        {
+            this.afflictLabel.text = updateTarget.affliction.Name;
+            this.afflictDesLabel.text = updateTarget.affliction.Description;
+        }
+        else if (updateTarget.IsVirtuous)
+        {
+            this.afflictLabel.text = "";
+            this.afflictDesLabel.text = "";
+        }
+        else
+        {
+            this.afflictLabel.text = "";
+            this.afflictDesLabel.text = "";
+        }
 
         availableSkNum = 0;
 

@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class SkillManager : MonoBehaviour 
 {
-
     // Owned Skills
     public List<BaseSkill> skillList = new List<BaseSkill>(4);
 

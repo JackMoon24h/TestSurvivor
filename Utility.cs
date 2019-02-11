@@ -28,4 +28,14 @@ public static class Utility
 
         return list;
     }
+
+    public static float StatFloatRound(float value)
+    {
+        return Mathf.Round(value * 100f) / 100f;
+    }
+
+    public static int StatIntRound(float value)
+    {
+        return (int)Mathf.Round(value);
+    }
 }

@@ -30,7 +30,7 @@ public class BaseEnemy : Actor
         // Enemy Action
         target.characterAction.Act(activeSkill.skillTargetActionType);
 
-        activeSkill.Excute(target.gameObject);
+        activeSkill.Excute(this, target.gameObject);
     }
 
     public void CastToEnemies(BaseSkill activeSkill, List<BaseCharacter> targets)
@@ -42,7 +42,7 @@ public class BaseEnemy : Actor
         foreach (var t in targets)
         {
             t.characterAction.Act(activeSkill.skillTargetActionType);
-            activeSkill.Excute(t.gameObject);
+            activeSkill.Excute(this, t.gameObject);
         }
     }
 
@@ -50,7 +50,7 @@ public class BaseEnemy : Actor
     {
         EnemyManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
-        activeSkill.Excute(gameObject);
+        activeSkill.Excute(this, gameObject);
     }
 
     public void CastToAlly(BaseSkill activeSkill, BaseEnemy target)
@@ -62,7 +62,7 @@ public class BaseEnemy : Actor
         target.characterAction.Act(activeSkill.skillTargetActionType);
 
 
-        activeSkill.Excute(target.gameObject);
+        activeSkill.Excute(this, target.gameObject);
     }
 
     public void CastToAllies(BaseSkill activeSkill, List<BaseEnemy> targets)
@@ -76,7 +76,7 @@ public class BaseEnemy : Actor
             if (t != EnemyManager.instance.activeCharacter)
             {
                 t.characterAction.Act(activeSkill.skillTargetActionType);
-                activeSkill.Excute(t.gameObject);
+                activeSkill.Excute(this, t.gameObject);
             }
         }
     }

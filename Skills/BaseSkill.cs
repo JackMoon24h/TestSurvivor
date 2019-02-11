@@ -38,6 +38,7 @@ public class BaseSkill : MonoBehaviour
     public int level;
     public Sprite skillIcon;
     public Actor.Job belongTo;
+    public Actor owner;
     public GameObject[] bloodEffects; // needs assigned when we create the skill
 
     // Unique Mechanism
@@ -56,12 +57,10 @@ public class BaseSkill : MonoBehaviour
 
     public Actor targetActor;
     public float delay = 2f;
-    public bool canCrit = false; // Whether it can crit or not
+    public bool canCrit = true;
+    public bool canDodge = true;
     public List<SkillEffect> effects = new List<SkillEffect>();
 
-    public bool hasMainEffect;
-    public bool hasSubEffect;
-    public PhysicalEffectType subEffectType;
 
     // Public method to set the values in the skill ui
     public virtual void SetValues(GameObject skillDisplayObject)
@@ -74,9 +73,10 @@ public class BaseSkill : MonoBehaviour
             SD.thisSkillLevel.text = level.ToString();
             SD.thisSkillIcon.sprite = skillIcon;
         }
+
     }
 
-    public virtual void Excute(GameObject target)
+    public virtual void Excute(Actor attacker, GameObject target)
     {
         if(target.tag == "Enemy")
         {
@@ -85,6 +85,30 @@ public class BaseSkill : MonoBehaviour
         else
         {
             targetActor = target.GetComponent<BaseCharacter>();
+        }
+
+        if(this.canDodge)
+        {
+            var dodChance = Mathf.Clamp(attacker.Accuracy + accMode - targetActor.Dodge, 0f, 1f);
+            float rand = Random.Range(0, 1f);
+            if(rand <= dodChance)
+            {
+                // DODGE!
+            }
+        }
+
+        if (this.canCrit)
+        {
+            var critChance = attacker.Critical + this.critMode;
+            float rand = Random.Range(0, 1f);
+            if (rand > critChance)
+            {
+                // No Critical
+            }
+            else
+            {
+                // Critical!
+            }
         }
     }
 }

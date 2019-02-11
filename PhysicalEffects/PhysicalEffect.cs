@@ -47,7 +47,6 @@ public class PhysicalEffect : MonoBehaviour
 
     public PhysicalEffectType physicalEffectType;
     public Actor owner;
-    public GameObject iconPrefab;
 
     public virtual void SetEffect(int power, int duration, Actor target)
     {

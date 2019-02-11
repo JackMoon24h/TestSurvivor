@@ -20,7 +20,7 @@ public class Gang : BaseCharacter
 
     void Setting()
     {
-        rarity = BaseCharacter.Rarity.Common;
+        rarity = Rarity.Common;
         job = BaseCharacter.Job.Gang;
         jobName = job.ToString();
         jobDescription = this.Name + " had lived in slum vilage robbing and stealing money from people before the nightmare";
@@ -38,7 +38,6 @@ public class Gang : BaseCharacter
         m_dodge = 15;
         m_critical = 27;
         m_virtue = 5;
-        m_stressRes = 22;
         m_bleedRes = 25;
         m_infectRes = 18;
         m_stunRes = 18;

@@ -229,6 +229,8 @@ public class TurnStateMachine : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+        // Mental Suffering
+
         // For debugging purpose. Can be deleted later on.
         UIManager.instance.SetEnemyListtUI();
         UIManager.instance.SetPlayerListUI();
