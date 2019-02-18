@@ -39,7 +39,7 @@ public class BaseSkill : MonoBehaviour
     public Sprite skillIcon;
     public Actor.Job belongTo;
     public Actor owner;
-    public GameObject[] bloodEffects; // needs assigned when we create the skill
+    public GameObject[] effectsPrefab; // needs assigned when we create the skill
 
     // Unique Mechanism
     public SkillType skillType;
@@ -59,6 +59,9 @@ public class BaseSkill : MonoBehaviour
     public float delay = 2f;
     public bool canCrit = true;
     public bool canDodge = true;
+
+    float increaseHitChance = 0.1f;
+
     public List<SkillEffect> effects = new List<SkillEffect>();
 
 
@@ -78,6 +81,7 @@ public class BaseSkill : MonoBehaviour
 
     public virtual void Excute(Actor attacker, GameObject target)
     {
+
         if(target.tag == "Enemy")
         {
             targetActor = target.GetComponent<BaseEnemy>();
@@ -87,28 +91,51 @@ public class BaseSkill : MonoBehaviour
             targetActor = target.GetComponent<BaseCharacter>();
         }
 
-        if(this.canDodge)
+        // Dodge Check
+        if (this.canDodge)
         {
-            var dodChance = Mathf.Clamp(attacker.Accuracy + accMode - targetActor.Dodge, 0f, 1f);
-            float rand = Random.Range(0, 1f);
-            if(rand <= dodChance)
-            {
-                // DODGE!
-            }
-        }
+            var hitChance = Mathf.Clamp(attacker.Accuracy + accMode - targetActor.Dodge, 0f, 1f);
 
-        if (this.canCrit)
-        {
-            var critChance = attacker.Critical + this.critMode;
-            float rand = Random.Range(0, 1f);
-            if (rand > critChance)
+            if(targetActor.onDodge)
             {
-                // No Critical
+                Mathf.Clamp(hitChance + increaseHitChance, 0f, 1f);
+            }
+            Debug.Log(hitChance);
+            float rand = Random.Range(0, 1f);
+            Debug.Log(rand);
+
+            targetActor.onCrit = false;
+            targetActor.onDodge = false;
+
+            if (rand <= hitChance)
+            {
+                // Critical Check
+                float critRoll = Random.Range(0f, 1f);
+                var critChance = attacker.Critical + this.critMode;
+
+                if (this.canCrit && critRoll <= critChance)
+                {
+                    // Critical!
+                    targetActor.onCrit = true;
+                    targetActor.characterAction.Act(ActionType.CriticalHit);
+                }
+                else
+                {
+                    targetActor.onCrit = false;
+                    targetActor.characterAction.Act(this.skillTargetActionType);
+                }
             }
             else
             {
-                // Critical!
+                // Dodge!
+                targetActor.onDodge = true;
+
+                targetActor.characterAction.Act(ActionType.Dodge);
+                UIManager.instance.CreateEffect("Dodge", targetActor, 0);
             }
         }
+
+
+
     }
 }

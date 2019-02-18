@@ -45,8 +45,14 @@ public class Commander : MonoBehaviour
     bool m_isActing = false;
     public bool IsActing { get { return m_isActing; } set { m_isActing = value; } }
 
+    bool m_isMentalActing = false;
+    public bool IsMentalActing { get { return m_isMentalActing; } set { m_isMentalActing = value; } }
+
     bool m_isSpeaking = false;
     public bool IsSpeaking { get { return m_isSpeaking; } set { m_isSpeaking = value; } }
+
+    float m_actOutChance = 0.99f;
+    public float ActOutChance { get { return m_actOutChance; } set { m_actOutChance = value; } }
 
     public List<Actor> actorList = new List<Actor>();
     public List<Trigger> triggers = new List<Trigger>();
@@ -55,6 +61,8 @@ public class Commander : MonoBehaviour
     // Set in the inspector
     public List<GameObject> physicalEffectPrefabs;
     public List<GameObject> afflictionPrefabs;
+    public List<GameObject> virtuePrefabs;
+    public List<GameObject> sufferBackGrounds;
 
     // Unity Events
     public UnityEvent setupEvent;
@@ -281,18 +289,21 @@ public class Commander : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
         // Finish Battle will be called when player won the battle
+        while(PlayerManager.instance.allDead)
+        {
+            yield return null;
+        }
         FinishBattle();
     }
 
     public void LoseLevel()
     {
+        m_isGameOver = true;
         StartCoroutine(LoseLevelRoutine());
     }
 
     IEnumerator LoseLevelRoutine()
     {
-        m_isGameOver = true;
-
         yield return new WaitForSeconds(1f);
         UIManager.instance.EndUIShield();
         m_isGamePlaying = false;
@@ -320,6 +331,7 @@ public class Commander : MonoBehaviour
             t.btn.interactable = true;
         }
 
+        PlayerManager.instance.SetActiveCharacterAtPos(1);
 
         EnableInput(true);
     }

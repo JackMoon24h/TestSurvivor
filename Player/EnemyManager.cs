@@ -95,7 +95,7 @@ public class EnemyManager : MonoBehaviour
 
     public void SetPositions(List<BaseEnemy> cList)
     {
-        if (Commander.instance.IsBattle)
+        if (Commander.instance.IsBattle && Commander.instance.turnStateMachine.currentTurnState != TurnStateMachine.TurnState.HandleEffects)
         {
             Commander.instance.IsActing = true;
         }
@@ -292,7 +292,7 @@ public class EnemyManager : MonoBehaviour
 
     IEnumerator SwapRoutine(List<BaseEnemy> sList, int activePos, int targetPos)
     {
-        if (Commander.instance.IsBattle)
+        if (Commander.instance.turnStateMachine.currentTurnState == TurnStateMachine.TurnState.ConfirmTarget)
         {
             Commander.instance.turnStateMachine.HasConfirmedCommand = true;
         }

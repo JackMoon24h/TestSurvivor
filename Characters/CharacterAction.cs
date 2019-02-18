@@ -5,7 +5,7 @@ using UnityEngine;
 public class CharacterAction : MonoBehaviour 
 {
     protected Animator animator;
-    protected GameObject body;
+    public GameObject body;
 
     public float baseMoveSpace = 1f;
     public float correctionSpace = 3f;
@@ -24,6 +24,8 @@ public class CharacterAction : MonoBehaviour
     public float actStayTime; // Time for moving to act end position
     public float actOutTime; // Time for moving to original position
 
+    public float mentalActStayTime;
+
     // Defense Action Related =================================================
     public Vector3 targetStage = new Vector3(5.5f, 0, 0);
     public Vector3 buffTargetStage = new Vector3(6.5f, 0, 0);
@@ -37,7 +39,7 @@ public class CharacterAction : MonoBehaviour
     protected CameraController subCameraController;
     protected Actor actor;
 
-
+    public bool isAfflictionActionOver = true;
 
     // Use this for initialization
     protected virtual void Start () 
@@ -52,6 +54,7 @@ public class CharacterAction : MonoBehaviour
         actInTime = cameraController.zoomInDelay;
         actStayTime = cameraController.zoomInTime + cameraController.zoomStayTime;
         actOutTime = cameraController.zoomOutTime;
+        mentalActStayTime = cameraController.zoomInTime + cameraController.mentalZoomStay;
     }
 
     // For Enemies Only
@@ -107,7 +110,6 @@ public class CharacterAction : MonoBehaviour
                 break;
         }
     }
-
 
     protected virtual IEnumerator ActionRoutine(string action)
     {
@@ -227,6 +229,48 @@ public class CharacterAction : MonoBehaviour
         SwitchLayer("Character");
     }
 
+    public void MentalAct(string action)
+    {
+        if (action == "Affliction" || action == "Virtue")
+        {
+            isAfflictionActionOver = false;
+            StartCoroutine(MentalActRoutine(action));
+        }
+    }
+
+    protected virtual IEnumerator MentalActRoutine(string action)
+    {
+        // Zoom the camera
+        cameraController.AfflictionZoom(action);
+        subCameraController.AfflictionZoom(action);
+        SwitchLayer("Actor");
+        animator.SetTrigger(action);
+
+        var movePos = actor.Position * -PlayerManager.spacing;
+        body.transform.localPosition = new Vector3(movePos, 0f, 0f);
+        yield return new WaitForSeconds(actInTime + mentalActStayTime);
+
+        iTween.MoveTo(body, iTween.Hash(
+            "x", 0,
+            "y", 0,
+            "z", 0,
+            "isLocal", true,
+            "time", actOutTime,
+            "easetype", iTween.EaseType.easeInOutExpo
+        ));
+
+        body.transform.localPosition = Vector3.zero;
+
+        animator.ResetTrigger(action);
+        SwitchLayer("Character");
+
+        while (cameraController.isZooming || subCameraController.isZooming)
+        {
+            yield return null;
+        }
+        isAfflictionActionOver = true;
+    }
+
     protected virtual void MoveToStage()
     {
         // Move to Stage
@@ -310,6 +354,7 @@ public class CharacterAction : MonoBehaviour
 
     public void Dead()
     {
+        UIManager.instance.CreateEffect("Death", actor, 0);
         StartCoroutine(DeadRoutine());
     }
 
@@ -362,12 +407,16 @@ public class CharacterAction : MonoBehaviour
 
         if (this.gameObject.tag == "Enemy")
         {
-            EnemyManager.instance.characterList.RemoveAt(this.actor.Position - 1);
+            var target = (BaseEnemy)this.actor;
+            EnemyManager.instance.characterList.Remove(target);
+            yield return new WaitForSeconds(0.1f);
             EnemyManager.instance.SetPositions(EnemyManager.instance.characterList);
         }
         else
         {
-            PlayerManager.instance.characterList.RemoveAt(this.actor.Position - 1);
+            var target = (BaseCharacter)this.actor;
+            PlayerManager.instance.characterList.Remove(target);
+            yield return new WaitForSeconds(0.1f);
             PlayerManager.instance.SetPositions(PlayerManager.instance.characterList);
         }
 

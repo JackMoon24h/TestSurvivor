@@ -8,7 +8,7 @@ public class Speaker : MonoBehaviour
     BaseCharacter thisCharacter;
     public GameObject chatBox;
     public Text lineText;
-    public float typeDelay = 0.1f;
+    public float typeDelay = 0.03f;
     public float delay = 1f;
 
     private void Start()
@@ -21,7 +21,7 @@ public class Speaker : MonoBehaviour
     private string[] m_normalState =
     {
         "We need to get there as soon as possible....!",
-        "Hey, don't forget the reason why we are here",
+        "Hey, don't forget the reason why we are here..",
         "Be careful...I saw something behind us....",
         "I miss the old days...before the breakout..."
     };
@@ -47,7 +47,7 @@ public class Speaker : MonoBehaviour
         lineText.text = null;
         chatBox.SetActive(value);
 
-        chatBox.GetComponent<RectTransform>().position = new Vector3((thisCharacter.Position - 1) * -220, 350f, 0f);
+        chatBox.GetComponent<RectTransform>().localPosition = new Vector3((thisCharacter.Position - 1) * -220, 350f, 0f);
     }
 
     public void Speak()
@@ -90,7 +90,34 @@ public class Speaker : MonoBehaviour
 
         yield return new WaitForSeconds(delay);
         ShowChatBox(false);
+        yield return new WaitForSeconds(0.1f);
         Commander.instance.IsSpeaking = false;
     }
 
+    public void FixedSpeak(string sentence)
+    {
+        if (Commander.instance.IsSpeaking)
+        {
+            return;
+        }
+
+        Commander.instance.IsSpeaking = true;
+        ShowChatBox(true);
+
+        if (thisCharacter.IsAfflicted)
+        {
+            lineText.color = Color.red;
+            StartCoroutine(SpeakRoutine(sentence));
+        }
+        else if (thisCharacter.IsVirtuous)
+        {
+            lineText.color = Color.yellow;
+            StartCoroutine(SpeakRoutine(sentence));
+        }
+        else
+        {
+            lineText.color = Color.white;
+            StartCoroutine(SpeakRoutine(sentence));
+        }
+    }
 }

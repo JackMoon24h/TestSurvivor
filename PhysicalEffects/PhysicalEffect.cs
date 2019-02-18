@@ -28,7 +28,8 @@ public enum PhysicalEffectType
     Bleed,
     Infect,
     Stun,
-    Buff
+    Buff,
+    Move
 }
 
 public class PhysicalEffect : MonoBehaviour 

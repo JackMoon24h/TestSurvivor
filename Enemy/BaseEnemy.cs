@@ -28,7 +28,7 @@ public class BaseEnemy : Actor
         EnemyManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
         // Enemy Action
-        target.characterAction.Act(activeSkill.skillTargetActionType);
+        //target.characterAction.Act(activeSkill.skillTargetActionType);
 
         activeSkill.Excute(this, target.gameObject);
     }
@@ -41,7 +41,7 @@ public class BaseEnemy : Actor
         // Enemy Action
         foreach (var t in targets)
         {
-            t.characterAction.Act(activeSkill.skillTargetActionType);
+            //t.characterAction.Act(activeSkill.skillTargetActionType);
             activeSkill.Excute(this, t.gameObject);
         }
     }
@@ -89,6 +89,55 @@ public class BaseEnemy : Actor
     public override void TakeDamage(int dmg)
     {
         base.TakeDamage(dmg);
+    }
+
+    protected override IEnumerator MentalEffectRoutine(Actor attacker, bool hasMentalEffect, int mentalDMG)
+    {
+        yield return base.MentalEffectRoutine(attacker, hasMentalEffect, mentalDMG);
+
+        // Critical Check
+        bool critHit = false;
+        foreach (var t in EnemyManager.instance.characterList)
+        {
+            if (t.onCrit)
+            {
+                critHit = true;
+                break;
+            }
+        }
+
+        if(critHit)
+        {
+            var character = (BaseCharacter)attacker;
+            if(!character.DoingMentalAction)
+            {
+                character.TakeMentalHeal(character.onCritMentalHeal);
+            }
+            yield break;
+        }
+
+        // Dodge Check
+
+        bool dodged = false;
+        foreach (var t in EnemyManager.instance.characterList)
+        {
+            if(t.onDodge)
+            {
+                dodged = true;
+                break;
+            }
+        }
+
+        if(dodged)
+        {
+            var character = (BaseCharacter)attacker;
+            if(!character.DoingMentalAction)
+            {
+                yield return StartCoroutine(character.TakeMentalDamage(character.onDodMentalDamage));
+            }
+        }
+
+        yield return new WaitForSeconds(1f);
     }
 
     public void ChooseCommand()

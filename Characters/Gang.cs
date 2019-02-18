@@ -30,19 +30,20 @@ public class Gang : BaseCharacter
         m_health = m_maxHealth;
         m_maxMental = 100;
         m_mental = m_maxMental;
-        m_damage = 30;
-        m_protection = 5;
-        m_endurance = 5;
+        m_damage = 10;
+        m_protection = 4;
+        m_endurance = 1;
         m_speed = 10;
-        m_accuracy = 12;
-        m_dodge = 15;
-        m_critical = 27;
-        m_virtue = 5;
-        m_bleedRes = 25;
-        m_infectRes = 18;
-        m_stunRes = 18;
-        m_moveRes = 17;
-        m_deathBlow = 14;
+
+        m_accuracy = 0.09f;
+        m_dodge = 0.01f;
+        m_critical = 0.9f;
+        m_virtue = 0.5f;
+        m_bleedRes = 0.35f;
+        m_infectRes = 0.48f;
+        m_stunRes = 0.25f;
+        m_moveRes = 0.45f;
+        m_deathBlow = 0.15f;
     }
 
 }

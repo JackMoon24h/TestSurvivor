@@ -28,7 +28,10 @@ public class Actor : MonoBehaviour
         new Vector2(-2.7f + iconSpacing * 2, 3f),
         new Vector2(-2.7f + iconSpacing * 3, 3f),
         new Vector2(-2.7f + iconSpacing * 4, 3f),
+        new Vector2(-1f, 3.8f), // Move
     };
+
+    public static readonly Vector2 mentalPosition = new Vector2(-0.75f, 1.3f);
 
     // Assign from the inspector
     public GameObject cursor;
@@ -100,7 +103,7 @@ public class Actor : MonoBehaviour
     public float MoveRes { get { return m_moveRes; } set { m_moveRes = value; } }
 
 
-
+    public float critDmgRate = 1.5f;
     public BaseSkill activeCommand;
 
     // Physical Effects
@@ -122,6 +125,11 @@ public class Actor : MonoBehaviour
     bool m_isSubActionOver = true;
     public bool IsSubActionOver { get { return m_isSubActionOver; } set { m_isSubActionOver = value; } }
 
+    public bool onCrit = false;
+    public bool onDodge = false;
+
+    bool isResisted;
+
     protected virtual void Awake()
     {
         characterAction = GetComponent<CharacterAction>();
@@ -136,7 +144,7 @@ public class Actor : MonoBehaviour
         PlayerManager.instance.activeCharacter.characterAction.Act(activeSkill.skillActionType);
 
         // Enemy Action
-        target.characterAction.Act(activeSkill.skillTargetActionType);
+        //target.characterAction.Act(activeSkill.skillTargetActionType);
 
         activeSkill.Excute(this, target.gameObject);
     }
@@ -149,7 +157,7 @@ public class Actor : MonoBehaviour
         // Enemy Action
         foreach (var t in targets)
         {
-            t.characterAction.Act(activeSkill.skillTargetActionType);
+            //t.characterAction.Act(activeSkill.skillTargetActionType);
             activeSkill.Excute(this, t.gameObject);
         }
     }
@@ -199,12 +207,76 @@ public class Actor : MonoBehaviour
     // Handle Effects
     public virtual void TakeDamage(int dmg)
     {
-        var actualDMG = (int)Mathf.Round(dmg / this.m_protection);
+        if(this.onDodge)
+        {
+            return;
+        }
+        float baseDMG = Mathf.Round(dmg / this.m_protection);
+        int actualDMG = 0;
+
+
+        if(onCrit)
+        {
+            // Critical!
+            actualDMG = Mathf.Clamp((int)Mathf.Round(baseDMG * critDmgRate), 1, 999);
+            UIManager.instance.CreateEffect("Critical", this, actualDMG);
+        }
+        else
+        {
+            actualDMG = (int)baseDMG;
+            UIManager.instance.CreateEffect("Damage", this, actualDMG);
+        }
+
         this.m_health -= actualDMG;
 
-        UIManager.instance.CreateEffect("Damage", this, actualDMG);
-
         DeathCheck();
+    }
+
+    public virtual void TakeHeal(int heal)
+    {
+        this.m_health = Mathf.Clamp(m_health + heal, 0, m_maxHealth);
+        UIManager.instance.CreateEffect("Heal", this, heal);
+        UpdateHPBar();
+    }
+
+    public virtual void TakeCure(string effect)
+    {
+        switch(effect)
+        {
+            case "All":
+                var countAll = physicalEffects.Count;
+                m_bleedEffects = 0;
+                m_infectEffects = 0;
+                m_stunEffects = 0;
+
+                for (int i = 0; i < countAll; i++)
+                {
+                    Destroy(physicalEffects[i].gameObject);
+                }
+                this.physicalEffects.Clear();
+                break;
+            case "Bleed":
+                RemovePhysicalEffect(PhysicalEffectType.Bleed);
+                break;
+            case "Infect":
+                RemovePhysicalEffect(PhysicalEffectType.Infect);
+                break;
+            case "Stun":
+                RemovePhysicalEffect(PhysicalEffectType.Stun);
+                break;
+            default:
+                break;
+        }
+        UIManager.instance.CreateEffect("Cure", this, 0);
+        UpdateHPBar();
+    }
+
+    public virtual void TakeMentalCure(int amount)
+    {
+        if(this is BaseEnemy)
+        {
+            return;
+        }
     }
 
     void DeathCheck()
@@ -235,21 +307,127 @@ public class Actor : MonoBehaviour
         ));
     }
 
-
-
-    public void TakeEffect(PhysicalEffectType type, int pow, int dur)
-    {
-        StartCoroutine(PhysicalEffectRoutine(type, pow, dur));
-    }
-
-    IEnumerator PhysicalEffectRoutine(PhysicalEffectType type, int pow, int dur)
+    public void TakeEffect(Actor attacker, bool hasMentalEffect, int mentalDMG, bool hasPhysicalEffect, PhysicalEffectType type, int pow, int dur)
     {
         m_isSubActionOver = false;
+        Debug.Log(m_isSubActionOver);
+
+        StartCoroutine(TakeEffectRoutine(attacker, hasMentalEffect, mentalDMG, hasPhysicalEffect, type, pow, dur));
+    }
+
+    IEnumerator TakeEffectRoutine(Actor attacker, bool hasMentalEffect, int mentalDMG, bool hasPhysicalEffect, PhysicalEffectType type, int pow, int dur)
+    {
         while (Commander.instance.IsActing)
         {
             yield return null;
         }
 
+        yield return StartCoroutine(MentalEffectRoutine(attacker, hasMentalEffect, mentalDMG));
+        // Should Wait for Affliction check
+
+        Commander.instance.IsMentalActing = Commander.instance.turnStateMachine.IsStillMentalActing();
+
+        while (Commander.instance.IsMentalActing)
+        {
+            yield return null;
+            Commander.instance.IsMentalActing = Commander.instance.turnStateMachine.IsStillMentalActing();
+        }
+
+        yield return new WaitForSeconds(0.3f);
+
+        if(!hasPhysicalEffect)
+        {
+            m_isSubActionOver = true;
+            yield break;
+        }
+        yield return StartCoroutine(PhysicalEffectRoutine(type, pow, dur));
+    }
+
+    protected virtual IEnumerator MentalEffectRoutine(Actor attacker, bool hasMentalEffect, int mentalDMG)
+    {
+
+        // Mental Action is only for base character. So BaseCharacter should set it to false at some point
+        Commander.instance.IsMentalActing = true;
+
+        yield return new WaitForSeconds(0.2f);
+    }
+
+    protected virtual IEnumerator PhysicalEffectRoutine(PhysicalEffectType type, int pow, int dur)
+    {
+        if(this.onDodge)
+        {
+            m_isSubActionOver = true;
+            yield break;
+        }
+
+        // Resistance Check
+        switch(type)
+        {
+            case PhysicalEffectType.Bleed:
+                var bRoll = Random.Range(0, 1f);
+                if(bRoll <= this.m_bleedRes)
+                {
+                    UIManager.instance.CreateEffect("BleedResist", this, 0);
+                    isResisted = true;
+                }
+                else
+                {
+                    isResisted = false;
+                }
+
+                break;
+            case PhysicalEffectType.Infect:
+                var iRoll = Random.Range(0, 1f);
+                if (iRoll <= this.m_infectRes)
+                {
+                    UIManager.instance.CreateEffect("InfectResist", this, 0);
+                    isResisted = true;
+                }
+                else
+                {
+                    isResisted = false;
+                }
+
+                break;
+            case PhysicalEffectType.Stun:
+                var sRoll = Random.Range(0, 1f);
+                if (sRoll <= this.m_stunRes)
+                {
+                    UIManager.instance.CreateEffect("StunResist", this, 0);
+                    isResisted = true;
+                }
+                else
+                {
+                    isResisted = false;
+                }
+
+                break;
+            case PhysicalEffectType.Move:
+                var mRoll = Random.Range(0, 1f);
+                if (mRoll <= this.m_moveRes)
+                {
+                    UIManager.instance.CreateEffect("MoveResist", this, 0);
+                    isResisted = true;
+                }
+                else
+                {
+                    isResisted = false;
+                }
+
+                break;
+            default:
+                break;
+        }
+
+        if(isResisted)
+        {
+            onCrit = false;
+            m_isSubActionOver = true;
+            isResisted = false;
+            yield break;
+        }
+
+        Debug.Log("Actor Physical Effect Routine");
         var typeNumber = (int)type;
 
         var effectObject = Instantiate(Commander.instance.physicalEffectPrefabs[typeNumber]);
@@ -264,7 +442,6 @@ public class Actor : MonoBehaviour
             effectObject.transform.localPosition = effectsPositions[typeNumber] + enemyCorrection;
         }
 
-
         var effect = effectObject.GetComponent<PhysicalEffect>();
         effect.SetEffect(pow, dur, this);
 
@@ -272,6 +449,17 @@ public class Actor : MonoBehaviour
 
         this.SetPhysicalEffect(effect);
 
+        yield return new WaitForSeconds(0.1f);
+
+        if (effect is Move)
+        {
+            // Swap Position
+            Destroy(effectObject, 1f);
+
+            physicalEffects.Remove(effect);
+        }
+
+        onCrit = false;
         m_isSubActionOver = true;
     }
    
@@ -308,24 +496,68 @@ public class Actor : MonoBehaviour
     }
 
     // Removing elements in iteration must be performed outside of foreach loop. Store its index and then delete it later.
-    public void RemovePhysicalEffect(PhysicalEffect effect)
+    public void RemovePhysicalEffect(PhysicalEffectType type)
     {
-        switch (effect.physicalEffectType)
+        switch (type)
         {
             case PhysicalEffectType.Bleed:
-                m_bleedEffects -= effect.Amount;
+                m_bleedEffects = 0;
+
+                var indexList = new List<int>();
+                for(int i = 0; i < physicalEffects.Count; i++)
+                {
+                    if(physicalEffects[i] is Bleed)
+                    {
+                        indexList.Add(i);
+                    }
+                }
+
+                foreach (var t in indexList)
+                {
+                    Destroy(physicalEffects[t].gameObject);
+                    physicalEffects.RemoveAt(t);
+                }
+
                 break;
             case PhysicalEffectType.Infect:
-                m_infectEffects -= effect.Amount;
+                m_infectEffects = 0;
+
+                var indexListI = new List<int>();
+                for (int i = 0; i < physicalEffects.Count; i++)
+                {
+                    if (physicalEffects[i] is Infect)
+                    {
+                        indexListI.Add(i);
+                    }
+                }
+
+                foreach (var t in indexListI)
+                {
+                    Destroy(physicalEffects[t].gameObject);
+                    physicalEffects.RemoveAt(t);
+                }
+
                 break;
             case PhysicalEffectType.Stun:
                 if(m_stunEffects > 0)
                 {
-                    m_stunEffects--;
+                    m_stunEffects = 0;
+
+                    var index = 0;
+                    for (int i = 0; i < physicalEffects.Count; i++)
+                    {
+                        if (physicalEffects[i] is Stun)
+                        {
+                            index = i;
+                        }
+                    }
+
+                    Destroy(physicalEffects[index].gameObject);
+                    physicalEffects.RemoveAt(index);
+
                 }
                 break;
             case PhysicalEffectType.Buff:
-                m_buffEffects--;
                 break;
             default:
                 break;
@@ -382,15 +614,5 @@ public class Actor : MonoBehaviour
         // Random Behavior
 
         m_isSubActionOver = true;
-    }
-
-    public virtual void TakeMentalDamage(int mentalDmg)
-    {
-
-    }
-
-    public virtual void TakeMentalEffect()
-    {
-
     }
 }

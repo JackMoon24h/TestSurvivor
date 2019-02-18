@@ -9,10 +9,10 @@ public class TargetLock : BaseSkill
         base.Excute(attacker, target);
 
         // 1. Main Effect with character's basic action
-        targetActor.TakeDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
+        targetActor.TakeMentalCure(10);
 
         // 2. SubEffect
-        targetActor.TakeEffect(PhysicalEffectType.Bleed, 2, 3);
+        targetActor.TakeEffect(attacker, false, 0, false, PhysicalEffectType.Bleed, 2, 3);
     }
 
 

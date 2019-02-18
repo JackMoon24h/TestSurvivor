@@ -9,6 +9,10 @@ public class Narrator : MonoBehaviour
     GraphicMover graphicMover;
     Text narrationText;
 
+    public GameObject afflictionLabel;
+    Text affLabelText;
+    GraphicMover afflictionGM;
+
     private bool m_isNarrating = false;
     public bool IsNarrating { get{return m_isNarrating;} set{m_isNarrating = value;}}
 
@@ -18,7 +22,8 @@ public class Narrator : MonoBehaviour
         narration = GameObject.Find("Narration");
         graphicMover = narration.GetComponent<GraphicMover>();
         narrationText = narration.GetComponentInChildren<Text>();
-
+        affLabelText = afflictionLabel.GetComponentInChildren<Text>();
+        afflictionGM = afflictionLabel.GetComponent<GraphicMover>();
         SetUp();
 	}
 
@@ -32,5 +37,12 @@ public class Narrator : MonoBehaviour
         m_isNarrating = true;
         narrationText.text = sentence;
         graphicMover.Move();
+    }
+
+    public void ShowAfflictionResult(string afflictionName)
+    {
+        m_isNarrating = true;
+        affLabelText.text = afflictionName;
+        afflictionGM.Move();
     }
 }

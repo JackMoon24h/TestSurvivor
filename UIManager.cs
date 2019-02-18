@@ -33,7 +33,6 @@ public class UIManager : MonoBehaviour
     public Text moveLabel;
     public Text virtueLabel;
     public Text afflictLabel;
-    public Text afflictDesLabel;
 
     public Image[] playerListIMG = new Image[4];
     public Color pExistColor;
@@ -47,6 +46,8 @@ public class UIManager : MonoBehaviour
     public bool OnUIShield;
 
     public int availableSkNum;
+    public GameObject afflictedMark;
+    public GameObject virtuedMark;
 
     public GameObject damagePrefab;
     public GameObject criticalPrefab;
@@ -54,6 +55,7 @@ public class UIManager : MonoBehaviour
     public GameObject infectPrefab; // Infect, Infect Resist
     public GameObject healPrefab;
     public GameObject stunPrefab; // Stun, Stun Resist
+    public GameObject movePrefab;
     public GameObject resistPrefab; // Resist, Buff
     public GameObject dodgePrefab; // Dodge, Miss
     public GameObject mentalPrefab;
@@ -64,8 +66,23 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         canvas = GetComponent<Canvas>();
-        profileImage = mainPanel.transform.GetChild(0).GetComponent<Image>();
-        profileName = mainPanel.transform.GetChild(1).GetComponent<Text>();
+        if(profileImage == null)
+        {
+            profileImage = mainPanel.transform.GetChild(0).GetComponent<Image>();
+        }
+
+        if(profileName == null)
+        {
+            profileName = mainPanel.transform.GetChild(1).GetComponent<Text>();
+        }
+        if(afflictedMark == null)
+        {
+            afflictedMark = profileImage.transform.GetChild(0).gameObject;
+        }
+        if (virtuedMark == null)
+        {
+            virtuedMark = profileImage.transform.GetChild(1).gameObject;
+        }
     }
     void Start () 
     {
@@ -128,18 +145,21 @@ public class UIManager : MonoBehaviour
 
         if(updateTarget.IsAfflicted)
         {
+            virtuedMark.SetActive(false);
+            afflictedMark.SetActive(true);
             this.afflictLabel.text = updateTarget.affliction.Name;
-            this.afflictDesLabel.text = updateTarget.affliction.Description;
         }
         else if (updateTarget.IsVirtuous)
         {
-            this.afflictLabel.text = "";
-            this.afflictDesLabel.text = "";
+            afflictedMark.SetActive(false);
+            virtuedMark.SetActive(true);
+            this.afflictLabel.text = updateTarget.virtuousEffect.Name;
         }
         else
         {
+            virtuedMark.SetActive(false);
+            afflictedMark.SetActive(false);
             this.afflictLabel.text = "";
-            this.afflictDesLabel.text = "";
         }
 
         availableSkNum = 0;
@@ -228,6 +248,11 @@ public class UIManager : MonoBehaviour
                 label.GetComponentInChildren<Text>().text = amount.ToString();
                 break;
 
+            case "Cure":
+                label = Instantiate(healPrefab);
+                label.GetComponentInChildren<Text>().text = "Cured!";
+                break;
+
             case "Bleed":
                 label = Instantiate(bleedPrefab);
                 label.GetComponentInChildren<Text>().text = "BLEED";
@@ -258,6 +283,16 @@ public class UIManager : MonoBehaviour
                 label.GetComponentInChildren<Text>().text = "RESIST";
                 break;
 
+            case "Move":
+                label = Instantiate(movePrefab);
+                label.GetComponentInChildren<Text>().text = "MOVE!";
+                break;
+
+            case "MoveResist":
+                label = Instantiate(movePrefab);
+                label.GetComponentInChildren<Text>().text = "RESIST";
+                break;
+
             case "Resist":
                 label = Instantiate(resistPrefab);
                 label.GetComponentInChildren<Text>().text = "RESIST";
@@ -270,7 +305,7 @@ public class UIManager : MonoBehaviour
 
             case "Dodge":
                 label = Instantiate(dodgePrefab);
-                label.GetComponentInChildren<Text>().text = "DODGE!";
+                label.GetComponentInChildren<Text>().text = "MISS!";
                 break;
 
             case "Death":
@@ -286,7 +321,7 @@ public class UIManager : MonoBehaviour
 
             case "MentalHeal":
                 label = Instantiate(mentalHealPrefab);
-                label.GetComponentInChildren<Text>().text = amount.ToString();
+                label.GetComponentInChildren<Text>().text = "Encourage\n" + amount.ToString();
                 break;
 
             case "Refusal":
@@ -301,7 +336,7 @@ public class UIManager : MonoBehaviour
         }
 
         label.transform.SetParent(canvas.gameObject.transform);
-        var rand = Random.Range(0.95f, 1.15f);
+        var rand = Random.Range(0.95f, 1.25f);
         Vector2 screenPos = Camera.main.WorldToScreenPoint(target.transform.position) + correction * rand;
         label.transform.position = screenPos;
     }

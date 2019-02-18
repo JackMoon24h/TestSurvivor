@@ -12,6 +12,6 @@ public class HellfireBrew : BaseSkill
         targetActor.TakeDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
 
         // 2. SubEffect
-        targetActor.TakeEffect(PhysicalEffectType.Infect, 2, 3);
+        targetActor.TakeEffect(attacker, false, 0, true, PhysicalEffectType.Move, 0, 3);
     }
 }

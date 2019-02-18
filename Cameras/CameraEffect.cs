@@ -7,6 +7,7 @@ public class CameraEffect : MonoBehaviour
 {
     public PostProcessingProfile blurProfile;
     public PostProcessingProfile redBlurProfile;
+    public PostProcessingProfile lightBlurProfile;
     public PostProcessingProfile endBlurProfile;
     public PostProcessingProfile defaultProfile;
 
@@ -25,6 +26,14 @@ public class CameraEffect : MonoBehaviour
         if (cameraPostProcess != null && redBlurProfile != null && defaultProfile != null)
         {
             cameraPostProcess.profile = (state) ? redBlurProfile : defaultProfile;
+        }
+    }
+
+    public void EnableLightCameraBlur(bool state)
+    {
+        if (cameraPostProcess != null && lightBlurProfile != null && defaultProfile != null)
+        {
+            cameraPostProcess.profile = (state) ? lightBlurProfile : defaultProfile;
         }
     }
 

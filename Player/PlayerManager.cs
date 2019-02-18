@@ -26,7 +26,8 @@ public class PlayerManager : MonoBehaviour
     public bool isMovingBackWard = false;
     public bool isReached = false;
 
-
+    public bool isSuffering = false;
+    public bool allDead = false;
 
     public GameObject[] characterPrefabs = new GameObject[4];
     public List<BaseCharacter> characterList = new List<BaseCharacter>();
@@ -125,7 +126,7 @@ public class PlayerManager : MonoBehaviour
     // Initialize ()
     public void SetPositions(List<BaseCharacter> cList)
     {
-        if (Commander.instance.IsBattle)
+        if (Commander.instance.IsBattle && Commander.instance.turnStateMachine.currentTurnState != TurnStateMachine.TurnState.HandleEffects)
         {
             Commander.instance.IsActing = true;
         }
@@ -359,7 +360,7 @@ public class PlayerManager : MonoBehaviour
 
     IEnumerator SwapRoutine(List<BaseCharacter> sList, int activePos, int targetPos)
     {
-        if(Commander.instance.IsBattle)
+        if(Commander.instance.turnStateMachine.currentTurnState == TurnStateMachine.TurnState.ConfirmTarget)
         {
             Commander.instance.turnStateMachine.HasConfirmedCommand = true;
         }

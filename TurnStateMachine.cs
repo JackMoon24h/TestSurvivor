@@ -227,7 +227,7 @@ public class TurnStateMachine : MonoBehaviour
             m_hasHandledEffects = HasAllActorsDone();
         }
 
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
 
         // Mental Suffering
 
@@ -236,7 +236,7 @@ public class TurnStateMachine : MonoBehaviour
         UIManager.instance.SetPlayerListUI();
 
         currentTurnState = TurnState.FinishTurn;
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.75f);
 
         // Initialize variables for the next turn
         m_hasHandledEffects = false;
@@ -258,10 +258,10 @@ public class TurnStateMachine : MonoBehaviour
         {
             // Lose.
             Commander.instance.IsBattle = false;
+            PlayerManager.instance.allDead = true;
             Commander.instance.LoseLevel();
             yield break;
         }
-        Debug.Log(EnemyManager.instance.characterList.Count);
         Debug.Log("Win or Lose conditions are not met");
 
         m_turnCount++;
@@ -362,6 +362,21 @@ public class TurnStateMachine : MonoBehaviour
             if(t != null && !t.IsSubActionOver)
             {
                 result = false;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public bool IsStillMentalActing()
+    {
+        bool result = false;
+        foreach(var t in PlayerManager.instance.characterList)
+        {
+            if(t != null && t.DoingMentalAction)
+            {
+                result = true;
+                break;
             }
         }
         return result;

@@ -11,6 +11,9 @@ public class CameraController : MonoBehaviour
     public float zoomInDelay = 0f;
     public iTween.EaseType zoomInType = iTween.EaseType.spring;
 
+    public float mentalZoomRate = 45f;
+    public float mentalZoomStay = 2.3f;
+
     public float zoomStayTime = 1f;
 
     public float zoomOutTime = 0.5f;
@@ -63,6 +66,78 @@ public class CameraController : MonoBehaviour
             followTarget = PlayerManager.instance.gameObject;
             this.gameObject.transform.position = followTarget.transform.position + new Vector3(0, 0, -10f);
         }
+    }
+
+    public void Shake(float rotate, float time, float delay)
+    {
+        iTween.ShakePosition(gameObject, iTween.Hash(
+            "x", rotate,
+            "time", time,
+            "delay", delay
+        ));
+    }
+
+    public void AfflictionZoom(string action)
+    {
+        if (isZooming || Commander.instance.IsActing)
+        {
+            return;
+        }
+        StartCoroutine(AfflictionZoomRoutine(action));
+    }
+
+    IEnumerator AfflictionZoomRoutine(string action)
+    {
+        isZooming = true;
+        if (cameraEffect != null)
+        {
+            if(action == "Affliction")
+            {
+                cameraEffect.EnableRedCameraBlur(true);
+            }
+            else if(action == "Virtue")
+            {
+                cameraEffect.EnableLightCameraBlur(true);
+            }
+        }
+
+        iTween.ValueTo(gameObject, iTween.Hash(
+            "from", normalRate,
+            "to", mentalZoomRate,
+            "time", zoomInTime,
+            "delay", zoomInDelay,
+            "easetype", zoomInType,
+            "unupdatetarget", gameObject,
+            "onupdate", "UpdateZoom"
+        ));
+
+        yield return new WaitForSeconds(zoomInTime + zoomInDelay + mentalZoomStay);
+
+        iTween.ValueTo(gameObject, iTween.Hash(
+            "from", mentalZoomRate,
+            "to", normalRate,
+            "time", zoomOutTime,
+            "delay", zoomOutDelay,
+            "easetype", zoomOutType,
+            "unupdatetarget", gameObject,
+            "onupdate", "UpdateZoom"
+        ));
+
+        yield return new WaitForSeconds(zoomOutTime + zoomOutDelay);
+
+        if (cameraEffect != null)
+        {
+            if (action == "Affliction")
+            {
+                cameraEffect.EnableRedCameraBlur(false);
+            }
+            else if (action == "Virtue")
+            {
+                cameraEffect.EnableLightCameraBlur(false);
+            }
+        }
+
+        isZooming = false;
     }
 
     public void BattleZoomIn()

@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum AfflictionType
+public enum VirtueType
 {
-    Fearful, // Skip Turn
-    Paranoid, // Attack allies
-    Hopeless // Give Stress Damage to allies
+    Patience,
+    Focus
 }
 
-public class Affliction : MonoBehaviour 
+public class Virtue : MonoBehaviour 
 {
     protected string m_name;
     public string Name { get { return m_name; } }
@@ -20,27 +19,28 @@ public class Affliction : MonoBehaviour
     protected float m_effect = 0.3f;
     public float Effect { get { return m_effect; } set { m_effect = value; } }
 
-    public AfflictionType type;
+    public VirtueType type;
     public BaseCharacter owner;
     public List<ActOut> possibleActOuts = new List<ActOut>();
-    
+
     // Use this for initialization
-    protected virtual void Start () 
+    protected virtual void Start()
     {
 
-	}
-	
-	public virtual void SetEffects(BaseCharacter target)
+    }
+
+    public virtual void SetEffects(BaseCharacter target)
     {
         owner = target;
-        owner.IsAfflicted = true;
-        owner.affliction = this;
+        owner.IsVirtuous = true;
+        owner.virtuousEffect = this;
 
         // Common Debuff for all afflictions
-        owner.BleedRes = Utility.StatFloatRound(owner.BleedRes * (1 - m_effect));
-        owner.InfectRes = Utility.StatFloatRound(owner.InfectRes * (1 - m_effect));
-        owner.StunRes = Utility.StatFloatRound(owner.StunRes * (1 - m_effect));
-        owner.MoveRes = Utility.StatFloatRound(owner.MoveRes * (1 - m_effect));
+        owner.MaxHealth = Utility.StatIntRound(owner.MaxHealth * (1 + m_effect));
+        owner.BleedRes = Utility.StatFloatRound(owner.BleedRes * (1 + m_effect));
+        owner.InfectRes = Utility.StatFloatRound(owner.InfectRes * (1 + m_effect));
+        owner.StunRes = Utility.StatFloatRound(owner.StunRes * (1 + m_effect));
+        owner.MoveRes = Utility.StatFloatRound(owner.MoveRes * (1 + m_effect));
     }
 
     public virtual ActOut GetActOut()

@@ -53,9 +53,19 @@ public class BaseCharacter : Actor
     public bool IsAfflicted { get { return m_isAfflicted; } set { m_isAfflicted = value; } }
 
     // Virtue
-
+    public Virtue virtuousEffect;
     bool m_isVirtuous = false;
     public bool IsVirtuous { get { return m_isVirtuous; } set { m_isVirtuous = value; } }
+
+    bool m_doingMentalAction = false;
+    public bool DoingMentalAction { get { return m_doingMentalAction; } set { m_doingMentalAction = value; } }
+
+    public int onDodMentalDamage = 4;
+    public int onCritMentalDamage = 5;
+    public int onCritMentalHeal = 3;
+
+    private bool m_hasDoneActOut = false;
+    public bool HasDoneActOut { get { return m_hasDoneActOut; } set { m_hasDoneActOut = value; } }
 
     protected override void Awake()
     {
@@ -102,95 +112,310 @@ public class BaseCharacter : Actor
         base.TakeDamage(dmg);
     }
 
-    public override void TakeMentalDamage(int mentalDmg)
+    protected override IEnumerator MentalEffectRoutine(Actor attacker, bool hasMentalEffect, int mentalDMG)
     {
-        var actualDMG = (int)Mathf.Round(mentalDmg / this.m_endurance);
+        yield return base.MentalEffectRoutine(attacker, hasMentalEffect, mentalDMG);
+        m_doingMentalAction = true;
+
+        if (this.onDodge)
+        {
+            this.m_doingMentalAction = false;
+            yield break;
+        }
+
+        // If this character took critical attack from enemy
+        if (hasMentalEffect)
+        {
+            yield return StartCoroutine(TakeMentalDamage(mentalDMG));
+        }
+        else if (onCrit)
+        {
+            yield return StartCoroutine(TakeMentalDamage(onCritMentalDamage));
+        }
+
+        if(m_hasDoneActOut)
+        {
+            if(m_isAfflicted)
+            {
+                speaker.FixedSpeak("No need to help me...I am Done....It is Over..");
+                while(Commander.instance.IsSpeaking)
+                {
+                    yield return null;
+                }
+            }
+            else if (m_isVirtuous)
+            {
+                speaker.FixedSpeak("Don't give up! Keep supporting me! I can destroy them all.");
+                while (Commander.instance.IsSpeaking)
+                {
+                    yield return null;
+                }
+            }
+
+            m_hasDoneActOut = false;
+        }
+
+        Debug.Log("MentalEffectRoutine Over");
+        yield return new WaitForSeconds(0.5f);
+
+        m_doingMentalAction = false;
+    }
+
+    public virtual void TakeMentalHeal(int heal)
+    {
+        StartCoroutine(TakeMentalHealRoutine(heal));
+    }
+
+    public virtual IEnumerator TakeMentalHealRoutine(int heal)
+    {
+        m_doingMentalAction = true;
+        while (Commander.instance.IsActing)
+        {
+            yield return null;
+        }
+
+        this.m_mental = Mathf.Clamp(m_mental + heal, -100, m_maxMental);
+        UIManager.instance.CreateEffect("MentalHeal", this, heal);
+
+        yield return new WaitForSeconds(0.1f);
+
+        UpdateMPBar();
+
+        yield return new WaitForSeconds(0.4f);
+        m_doingMentalAction = false;
+    }
+
+    public virtual IEnumerator TakeMentalDamage(int mentalDmg)
+    {
+        m_doingMentalAction = true;
+        Debug.Log("TakeMentalDamage Routine");
+        int temp = 0;
+        if (this.m_isAfflicted)
+        {
+            temp = Mathf.RoundToInt(mentalDmg * 1.5f);
+        }
+        else if (this.m_isVirtuous)
+        {
+            temp = 0;
+        }
+        else
+        {
+            temp = mentalDmg;
+        }
+
+        var actualDMG = Mathf.Clamp(temp, 0, 100);
         this.m_mental -= actualDMG;
 
         UIManager.instance.CreateEffect("MentalDamage", this, actualDMG);
 
-        MentalCheck();
-    }
+        yield return new WaitForSeconds(0.1f);
 
-    void MentalCheck()
-    {
+        // Mental Check
         if (this.m_mental <= 0)
         {
-            this.m_mental = 0;
             UpdateMPBar();
-            Suffer();
+
+            var rand = Random.Range(0.2f, 0.4f);
+
+            yield return new WaitForSeconds(rand);
+
+            while(PlayerManager.instance.isSuffering)
+            {
+                yield return null;
+            }
+
+            yield return StartCoroutine(Suffer());
         }
         else
         {
             UpdateMPBar();
         }
-    }
 
-    void UpdateMPBar()
-    {
-
-    }
-
-    public override void TakeMentalEffect()
-    {
-        base.TakeMentalEffect();
-
-
+        m_doingMentalAction = false;
     }
 
     // When mental reaches 0, the character suffers...
-    public void Suffer()
+    IEnumerator Suffer()
     {
-        float rand = Random.Range(0, 1f);
-
-        if(rand > m_virtue)
+        PlayerManager.instance.isSuffering = true;
+        Debug.Log("Suffer Routine");
+        if (this.m_isAfflicted)
         {
-            // Affliction
-            StartCoroutine(AfflictRoutine());
+            var roll = Random.Range(0f, 1f);
+            if(roll <= 0.25f)
+            {
+                this.speaker.Speak();
+                while (Commander.instance.IsSpeaking)
+                {
+                    yield return null;
+                }
+            }
+            // Do Afflicted Behavior
+        }
+        else if (this.m_isVirtuous)
+        {
+            var roll = Random.Range(0f, 1f);
+            if (roll <= 0.25f)
+            {
+                this.speaker.Speak();
+                while (Commander.instance.IsSpeaking)
+                {
+                    yield return null;
+                }
+            }
+
+            // Do Virtuous Behavior
         }
         else
         {
-            // Virtue
-            StartCoroutine(VirtueRoutine());
+            float rand = Random.Range(0, 1f);
+
+            if (rand > m_virtue)
+            {
+                // Affliction
+                yield return StartCoroutine(AfflictRoutine());
+
+                this.speaker.Speak();
+                while (Commander.instance.IsSpeaking)
+                {
+                    yield return null;
+                }
+            }
+            else
+            {
+                // Virtue
+                yield return StartCoroutine(VirtueRoutine());
+
+                this.speaker.Speak();
+                while (Commander.instance.IsSpeaking)
+                {
+                    yield return null;
+                }
+            }
         }
+
+        yield return new WaitForSeconds(0.5f);
+        PlayerManager.instance.isSuffering = false;
     }
 
     IEnumerator AfflictRoutine()
     {
+        Debug.Log("Affliction Routine");
         // Tested
         Commander.instance.narrator.Narrate(this.m_name +"'s Mental is Tested...");
-        while(Commander.instance.narrator.IsNarrating)
-        {
-            yield return null;
-        }
-        // Camera Red Blur & Act
-        cameraEffect.EnableRedCameraBlur(true);
-        // Set Effect
-        var rand = Random.Range(0, Commander.instance.afflictionPrefabs.Count);
-        var afflictionObj = Instantiate(Commander.instance.afflictionPrefabs[rand]);
-        afflictionObj.transform.SetParent(this.transform);
-
-        afflictionObj.GetComponent<Affliction>().SetEffects();
-
-        yield return new WaitForSeconds(1f);
-        cameraEffect.EnableRedCameraBlur(false);
-        // ActOut
-
-    }
-
-    IEnumerator VirtueRoutine()
-    {
-        // Tested
-        Commander.instance.narrator.Narrate(this.m_name + "'s Mental is Tested...");
+        Camera.main.GetComponent<CameraController>().Shake(0.2f, 3f, 0.2f);
         while (Commander.instance.narrator.IsNarrating)
         {
             yield return null;
         }
         // Camera Red Blur & Act
+        this.characterAction.MentalAct("Affliction");
+
+        // Create BG effect
+        var bg = Instantiate(Commander.instance.sufferBackGrounds[0]);
+        bg.transform.SetParent(this.characterAction.body.transform);
+        bg.transform.localPosition = Vector3.zero;
 
         // Set Effect
+        var rand = Random.Range(0, Commander.instance.afflictionPrefabs.Count);
+        var afflictionObj = Instantiate(Commander.instance.afflictionPrefabs[rand], new Vector3(-1000f, -1000f, 0f), Quaternion.identity);
+        var temp = (AfflictionType)rand;
 
+        afflictionObj.GetComponent<Affliction>().SetEffects(this);
+
+        Commander.instance.narrator.ShowAfflictionResult(temp.ToString()); ;
+
+        while(!this.characterAction.isAfflictionActionOver)
+        {
+            yield return null;
+        }
+        Destroy(bg);
+        afflictionObj.transform.SetParent(this.transform);
+        afflictionObj.transform.localPosition = mentalPosition;
         // ActOut
+    }
+
+    IEnumerator VirtueRoutine()
+    {
+        Debug.Log("Virtue Routine");
+        // Tested
+        Commander.instance.narrator.Narrate(this.m_name + "'s Mental is Tested...");
+        Camera.main.GetComponent<CameraController>().Shake(0.2f, 3f, 0.2f);
+        while (Commander.instance.narrator.IsNarrating)
+        {
+            yield return null;
+        }
+
+        this.characterAction.MentalAct("Virtue");
+
+        // Create BG effect
+        var bg = Instantiate(Commander.instance.sufferBackGrounds[1]);
+        bg.transform.SetParent(this.characterAction.body.transform);
+        bg.transform.localPosition = Vector3.zero;
+
+        // Set Effect
+        var rand = Random.Range(0, Commander.instance.virtuePrefabs.Count);
+        var virtueObj = Instantiate(Commander.instance.virtuePrefabs[rand], new Vector3(-1000f, -1000f, 0f), Quaternion.identity);
+        var temp = (VirtueType)rand;
+
+        virtueObj.GetComponent<Virtue>().SetEffects(this);
+
+        Commander.instance.narrator.ShowAfflictionResult(temp.ToString());
+
+        while (!this.characterAction.isAfflictionActionOver)
+        {
+            yield return null;
+        }
+        Destroy(bg);
+        virtueObj.transform.SetParent(this.transform);
+        virtueObj.transform.localPosition = mentalPosition;
+        // ActOut
+    }
+
+    public override void TakeHeal(int heal)
+    {
+        if(m_isAfflicted)
+        {
+            UIManager.instance.CreateEffect("Refusal", this, heal);
+            m_hasDoneActOut = true;
+            return;
+        }
+
+        if(m_isVirtuous)
+        {
+            heal = Mathf.RoundToInt(heal * 1.25f);
+            m_hasDoneActOut = true;
+        }
+
+        base.TakeHeal(heal);
+    }
+
+    // TakeMentalHeal : Auto mental healing when take-menta-effect coroutine
+    // TakeMentalCure : Direct skill effect
+    public override void TakeMentalCure(int amount)
+    {
+        base.TakeMentalCure(amount);
+
+        if (m_isAfflicted)
+        {
+            UIManager.instance.CreateEffect("Refusal", this, amount);
+            m_hasDoneActOut = true;
+            return;
+        }
+
+        if (m_isVirtuous)
+        {
+            amount = Mathf.RoundToInt(amount * 1.25f);
+            m_hasDoneActOut = true;
+        }
+
+        this.m_mental = Mathf.Clamp(m_mental + amount, 0, m_maxHealth);
+        UIManager.instance.CreateEffect("MentalHeal", this, amount);
+        UpdateMPBar();
+    }
+
+    void UpdateMPBar()
+    {
 
     }
 }
