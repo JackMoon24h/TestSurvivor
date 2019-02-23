@@ -133,17 +133,17 @@ public class UIManager : MonoBehaviour
         this.maxMpLabel.text = updateTarget.MaxMental.ToString();
         this.dmgLabel.text = updateTarget.Damage.ToString();
         this.protLabel.text = updateTarget.Protection.ToString();
-        this.accLabel.text = updateTarget.Accuracy.ToString();
-        this.dodLabel.text = updateTarget.Dodge.ToString();
-        this.critLabel.text = updateTarget.Critical.ToString();
+        this.accLabel.text = Mathf.RoundToInt(updateTarget.Accuracy * 100).ToString() + "%";
+        this.dodLabel.text = Mathf.RoundToInt(updateTarget.Dodge * 100).ToString() + "%";
+        this.critLabel.text = Mathf.RoundToInt(updateTarget.Critical * 100).ToString() + "%";
         this.spdLabel.text = updateTarget.Speed.ToString();
-        this.bleedLabel.text = updateTarget.BleedRes.ToString();
-        this.infectLabel.text = updateTarget.InfectRes.ToString();
-        this.stunLabel.text = updateTarget.StunRes.ToString();
-        this.moveLabel.text = updateTarget.MoveRes.ToString();
-        this.virtueLabel.text = updateTarget.Virtue.ToString();
+        this.bleedLabel.text = Mathf.RoundToInt(updateTarget.BleedRes * 100).ToString() + "%";
+        this.infectLabel.text = Mathf.RoundToInt(updateTarget.InfectRes * 100).ToString() + "%";
+        this.stunLabel.text = Mathf.RoundToInt(updateTarget.StunRes * 100).ToString() + "%";
+        this.moveLabel.text = Mathf.RoundToInt(updateTarget.MoveRes * 100).ToString() + "%";
+        this.virtueLabel.text = Mathf.RoundToInt(updateTarget.Virtue * 100).ToString() + "%";
 
-        if(updateTarget.IsAfflicted)
+        if (updateTarget.IsAfflicted)
         {
             virtuedMark.SetActive(false);
             afflictedMark.SetActive(true);
@@ -240,7 +240,7 @@ public class UIManager : MonoBehaviour
 
             case "Critical":
                 label = Instantiate(criticalPrefab);
-                label.GetComponentInChildren<Text>().text = "Critical!\n" + amount.ToString();
+                label.GetComponentInChildren<Text>().text = "Crit!\n" + amount.ToString();
                 break;
 
             case "Heal":
@@ -250,7 +250,7 @@ public class UIManager : MonoBehaviour
 
             case "Cure":
                 label = Instantiate(healPrefab);
-                label.GetComponentInChildren<Text>().text = "Cured!";
+                label.GetComponentInChildren<Text>().text = "Cure!";
                 break;
 
             case "Bleed":
@@ -326,7 +326,7 @@ public class UIManager : MonoBehaviour
 
             case "Refusal":
                 label = Instantiate(mentalPrefab);
-                label.GetComponentInChildren<Text>().text = "Refusal..";
+                label.GetComponentInChildren<Text>().text = "Refuse";
                 break;
 
             default:

@@ -62,8 +62,6 @@ public class BaseSkill : MonoBehaviour
 
     float increaseHitChance = 0.1f;
 
-    public List<SkillEffect> effects = new List<SkillEffect>();
-
 
     // Public method to set the values in the skill ui
     public virtual void SetValues(GameObject skillDisplayObject)

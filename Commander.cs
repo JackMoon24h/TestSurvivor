@@ -63,6 +63,9 @@ public class Commander : MonoBehaviour
     public List<GameObject> afflictionPrefabs;
     public List<GameObject> virtuePrefabs;
     public List<GameObject> sufferBackGrounds;
+    public List<GameObject> bleedEffects;
+
+    public Vector3 baseBleedOffset = new Vector3(-5f, 2f, 10f);
 
     // Unity Events
     public UnityEvent setupEvent;

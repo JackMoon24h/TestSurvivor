@@ -354,7 +354,6 @@ public class CharacterAction : MonoBehaviour
 
     public void Dead()
     {
-        UIManager.instance.CreateEffect("Death", actor, 0);
         StartCoroutine(DeadRoutine());
     }
 
@@ -422,6 +421,14 @@ public class CharacterAction : MonoBehaviour
 
         Destroy(this.gameObject);
         Commander.instance.IsActing = false;
+        if(this.actor is BaseEnemy)
+        {
+            UIManager.instance.SetEnemyListtUI();
+        }
+        else
+        {
+            UIManager.instance.SetPlayerListUI();
+        }
     }
 
     // Outside of battle

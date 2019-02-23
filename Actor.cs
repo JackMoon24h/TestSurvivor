@@ -211,6 +211,14 @@ public class Actor : MonoBehaviour
         {
             return;
         }
+
+        var effect = Instantiate(Commander.instance.bleedEffects[1]);
+
+        var rand = Random.Range(-1f, 1f);
+
+        effect.transform.position = this.transform.position + new Vector3(rand - 0.5f, rand + 1f, 0);
+        Destroy(effect, 2f);
+
         float baseDMG = Mathf.Round(dmg / this.m_protection);
         int actualDMG = 0;
 

@@ -35,6 +35,7 @@ public class BaseCharacter : Actor
     protected int m_endurance;
     public int Endurance { get { return m_endurance; } set { m_endurance = value; } }
 
+    public GameObject mpGauge;
    
     // float params
 
@@ -407,15 +408,26 @@ public class BaseCharacter : Actor
         {
             amount = Mathf.RoundToInt(amount * 1.25f);
             m_hasDoneActOut = true;
+            return;
         }
 
-        this.m_mental = Mathf.Clamp(m_mental + amount, 0, m_maxHealth);
+        Debug.Log(m_mental + " " + amount + " " + m_mental + amount);
+
+        this.m_mental = Mathf.Clamp(m_mental + amount, 0, m_maxMental);
         UIManager.instance.CreateEffect("MentalHeal", this, amount);
         UpdateMPBar();
     }
 
     void UpdateMPBar()
     {
+        var ratio = Mathf.Max((float)this.m_mental / (float)this.m_maxMental, 0);
 
+        iTween.ScaleTo(this.mpGauge, iTween.Hash(
+            "x", ratio,
+            "isLocal", true,
+            "easetype", iTween.EaseType.easeInQuart,
+            "time", 1.2f,
+            "delay", 0.6f
+        ));
     }
 }

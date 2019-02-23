@@ -35,7 +35,7 @@ public class Gang : BaseCharacter
         m_endurance = 1;
         m_speed = 10;
 
-        m_accuracy = 0.09f;
+        m_accuracy = 0.99f;
         m_dodge = 0.01f;
         m_critical = 0.9f;
         m_virtue = 0.5f;

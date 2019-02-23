@@ -231,10 +231,6 @@ public class TurnStateMachine : MonoBehaviour
 
         // Mental Suffering
 
-        // For debugging purpose. Can be deleted later on.
-        UIManager.instance.SetEnemyListtUI();
-        UIManager.instance.SetPlayerListUI();
-
         currentTurnState = TurnState.FinishTurn;
         yield return new WaitForSeconds(0.75f);
 
