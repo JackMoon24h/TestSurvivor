@@ -46,8 +46,11 @@ public class Actor : MonoBehaviour
     protected int m_position;
     public int Position { get { return m_position; } set { m_position = value; } }
 
-    protected int[] m_preffredPosition = new int[4];
-    public int[] PreffredPosition { get { return m_preffredPosition; } set { m_preffredPosition = value; } }
+    protected Vector2[] m_preffredPosition = new Vector2[4];
+    public Vector2[] PreffredPosition { get { return m_preffredPosition; } set { m_preffredPosition = value; } }
+
+    protected Vector2[] m_preffredTarget = new Vector2[4];
+    public Vector2[] PreffredTarget { get { return m_preffredTarget; } set { m_preffredTarget = value; } }
 
     // Main States
     public bool isActive = false;

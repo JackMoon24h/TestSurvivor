@@ -6,8 +6,8 @@ public enum Rarity
 {
     Common,
     Rare,
-    Unique,
-    Legendary
+    SuperRare,
+    Legend
 }
 
 [RequireComponent(typeof(Speaker))]
@@ -67,6 +67,9 @@ public class BaseCharacter : Actor
 
     private bool m_hasDoneActOut = false;
     public bool HasDoneActOut { get { return m_hasDoneActOut; } set { m_hasDoneActOut = value; } }
+
+    public List<Quirk> positiveQuirks = new List<Quirk>();
+    public List<Quirk> negativeQuirks = new List<Quirk>();
 
     protected override void Awake()
     {
@@ -206,6 +209,10 @@ public class BaseCharacter : Actor
 
         var actualDMG = Mathf.Clamp(temp, 0, 100);
         this.m_mental -= actualDMG;
+
+        var randQueue = Random.Range(0.2f, 0.4f);
+
+        yield return new WaitForSeconds(randQueue);
 
         UIManager.instance.CreateEffect("MentalDamage", this, actualDMG);
 

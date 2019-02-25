@@ -11,6 +11,8 @@ public class CameraController : MonoBehaviour
     public float zoomInDelay = 0f;
     public iTween.EaseType zoomInType = iTween.EaseType.spring;
 
+    public float moveBackZoomRate = 82f;
+
     public float mentalZoomRate = 45f;
     public float mentalZoomStay = 2.3f;
 

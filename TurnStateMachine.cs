@@ -90,10 +90,6 @@ public class TurnStateMachine : MonoBehaviour
         // Set Queue for round 1
         queue = SetQueue(Commander.instance.actorList);
         m_turnsInRound = queue.Count;
-
-        // For debugging purpose. Can be deleted later on.
-        UIManager.instance.SetEnemyListtUI();
-        UIManager.instance.SetPlayerListUI();
     }
 
     // All current actors can act 1 time per 1 round

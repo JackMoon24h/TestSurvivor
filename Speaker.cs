@@ -47,7 +47,7 @@ public class Speaker : MonoBehaviour
         lineText.text = null;
         chatBox.SetActive(value);
 
-        chatBox.GetComponent<RectTransform>().localPosition = new Vector3((thisCharacter.Position - 1) * -220, 350f, 0f);
+        chatBox.GetComponent<RectTransform>().localPosition = new Vector3((thisCharacter.Position - 1) * -80f, 110f, 0f);
     }
 
     public void Speak()

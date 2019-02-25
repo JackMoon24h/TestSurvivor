@@ -20,11 +20,11 @@ public class Gang : BaseCharacter
 
     void Setting()
     {
-        rarity = Rarity.Common;
+        rarity = Rarity.Rare;
         job = BaseCharacter.Job.Gang;
         jobName = job.ToString();
         jobDescription = this.Name + " had lived in slum vilage robbing and stealing money from people before the nightmare";
-        m_level = 1;
+        m_level = 14;
         m_name = "John Washington";
         m_maxHealth = 22;
         m_health = m_maxHealth;
@@ -44,6 +44,21 @@ public class Gang : BaseCharacter
         m_stunRes = 0.25f;
         m_moveRes = 0.45f;
         m_deathBlow = 0.15f;
-    }
 
+        m_preffredPosition = new Vector2[]
+        {
+            new Vector2(0.3f, 0.3f),
+            new Vector2(0.7f, 0.7f),
+            new Vector2(0.8f, 0.8f),
+            new Vector2(0.5f, 0.5f)
+        };
+
+        m_preffredTarget = new Vector2[]
+        {
+            new Vector2(0.3f, 0.3f),
+            new Vector2(0.7f, 0.7f),
+            new Vector2(0.8f, 0.8f),
+            new Vector2(0.5f, 0.5f)
+        };
+    }
 }

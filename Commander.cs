@@ -297,6 +297,12 @@ public class Commander : MonoBehaviour
             yield return null;
         }
         FinishBattle();
+
+        yield return new WaitForSeconds(2f);
+        if(PlayerManager.instance.activeCharacter)
+        {
+            UIManager.instance.rewardWindow.GetComponent<RewardWindow>().OpenWindow();
+        }
     }
 
     public void LoseLevel()
@@ -335,8 +341,6 @@ public class Commander : MonoBehaviour
         }
 
         PlayerManager.instance.SetActiveCharacterAtPos(1);
-
-        EnableInput(true);
     }
 
     // Check if player has won the battle

@@ -8,10 +8,11 @@ public class UIManager : MonoBehaviour
     // References
     public static UIManager instance;
     Canvas canvas;
-    public Vector3 correction = new Vector3(0, 200f, 0);
+    public Vector3 correction = new Vector3(0, 85f, 0);
     public List<SkillDisplay> skillDisplays = new List<SkillDisplay>();
     public Image profileImage;
     public Text profileName;
+    public Text jobName;
 
     // Set from inspector
     public GameObject mainPanel;
@@ -34,14 +35,6 @@ public class UIManager : MonoBehaviour
     public Text virtueLabel;
     public Text afflictLabel;
 
-    public Image[] playerListIMG = new Image[4];
-    public Color pExistColor;
-    public Color pNotExistColor;
-
-    public Image[] enemyListIMG = new Image[4];
-    public Color eExistColor;
-    public Color eNotExistColor;
-
     public GameObject UIShield;
     public bool OnUIShield;
 
@@ -61,6 +54,10 @@ public class UIManager : MonoBehaviour
     public GameObject mentalPrefab;
     public GameObject mentalHealPrefab;
     public GameObject deathPrefab;
+
+    // Status Windows set in the inspector
+    public GameObject rewardWindow;
+
 
     // Use this for initialization
     private void Awake()
@@ -126,7 +123,8 @@ public class UIManager : MonoBehaviour
     public void UpdateUIPanel(BaseCharacter updateTarget)
     {
         this.profileImage.sprite = updateTarget.profileImage;
-        this.profileName.text = updateTarget.gameObject.name;
+        this.profileName.text = updateTarget.Name;
+        this.jobName.text = updateTarget.JobName;
         this.curHpLabel.text = updateTarget.Health.ToString();
         this.maxHpLabel.text = updateTarget.MaxHealth.ToString();
         this.curMpLabel.text = updateTarget.Mental.ToString();
@@ -171,40 +169,6 @@ public class UIManager : MonoBehaviour
             if(sd.IsAvailable)
             {
                 availableSkNum++;
-            }
-        }
-    }
-
-    public void SetPlayerListUI()
-    {
-        for (int i = 0; i < PlayerManager.instance.characterList.Count; i++)
-        {
-            if (PlayerManager.instance.characterList[i])
-            {
-                playerListIMG[i].color = pExistColor;
-            }
-            else
-            {
-                playerListIMG[i].color = pNotExistColor;
-            }
-        }
-    }
-
-    public void SetEnemyListtUI()
-    {
-        if(!Commander.instance.IsBattle)
-        {
-            return;
-        }
-        for (int i = 0; i < EnemyManager.instance.characterList.Count; i++)
-        {
-            if (EnemyManager.instance.characterList[i])
-            {
-                enemyListIMG[i].color = eExistColor;
-            }
-            else
-            {
-                enemyListIMG[i].color = eNotExistColor;
             }
         }
     }
@@ -336,6 +300,7 @@ public class UIManager : MonoBehaviour
         }
 
         label.transform.SetParent(canvas.gameObject.transform);
+        label.transform.localScale = new Vector3(1f, 1f, 1f);
         var rand = Random.Range(0.95f, 1.25f);
         Vector2 screenPos = Camera.main.WorldToScreenPoint(target.transform.position) + correction * rand;
         label.transform.position = screenPos;

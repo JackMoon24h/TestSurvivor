@@ -421,14 +421,6 @@ public class CharacterAction : MonoBehaviour
 
         Destroy(this.gameObject);
         Commander.instance.IsActing = false;
-        if(this.actor is BaseEnemy)
-        {
-            UIManager.instance.SetEnemyListtUI();
-        }
-        else
-        {
-            UIManager.instance.SetPlayerListUI();
-        }
     }
 
     // Outside of battle
