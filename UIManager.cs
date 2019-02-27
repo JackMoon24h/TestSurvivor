@@ -17,6 +17,10 @@ public class UIManager : MonoBehaviour
     // Set from inspector
     public GameObject mainPanel;
     public GameObject commandPanel;
+    public GameObject infoPanel;
+    public GameObject skillInfoPanel;
+
+    public Text skillDes;
 
     public Text curHpLabel;
     public Text maxHpLabel;
@@ -55,6 +59,8 @@ public class UIManager : MonoBehaviour
     public GameObject mentalHealPrefab;
     public GameObject deathPrefab;
 
+    public GameObject quirkPrefab;
+
     // Status Windows set in the inspector
     public GameObject rewardWindow;
 
@@ -63,6 +69,7 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         canvas = GetComponent<Canvas>();
+        skillDes = skillInfoPanel.GetComponentInChildren<Text>();
         if(profileImage == null)
         {
             profileImage = mainPanel.transform.GetChild(0).GetComponent<Image>();
@@ -191,6 +198,20 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void OpenSkillInfo()
+    {
+        if(!skillInfoPanel.activeInHierarchy)
+        {
+            skillInfoPanel.SetActive(true);
+        }
+        skillDes.text = PlayerManager.instance.activeCharacter.activeCommand.skillDescription;
+    }
+
+    public void CloseSkillInfo()
+    {
+        skillInfoPanel.SetActive(false);
+    }
+
     public void CreateEffect(string effect, Actor target, int amount)
     {
         GameObject label;
@@ -291,6 +312,11 @@ public class UIManager : MonoBehaviour
             case "Refusal":
                 label = Instantiate(mentalPrefab);
                 label.GetComponentInChildren<Text>().text = "Refuse";
+                break;
+
+            case "Quirk":
+                label = Instantiate(quirkPrefab);
+                label.GetComponentInChildren<Text>().text = "Gained\n" + "Personality";
                 break;
 
             default:

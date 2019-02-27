@@ -64,6 +64,8 @@ public class Commander : MonoBehaviour
     public List<GameObject> virtuePrefabs;
     public List<GameObject> sufferBackGrounds;
     public List<GameObject> bleedEffects;
+    public List<GameObject> positiveQuirkPrefabs;
+    public List<GameObject> negativeQuirkPrefabs;
 
     public Vector3 baseBleedOffset = new Vector3(-5f, 2f, 10f);
 
@@ -302,6 +304,11 @@ public class Commander : MonoBehaviour
         if(PlayerManager.instance.activeCharacter)
         {
             UIManager.instance.rewardWindow.GetComponent<RewardWindow>().OpenWindow();
+        }
+
+        if(battleOverEvent != null)
+        {
+            battleOverEvent.Invoke();
         }
     }
 

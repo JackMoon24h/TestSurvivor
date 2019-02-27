@@ -100,6 +100,7 @@ public class SkillDisplay : MonoBehaviour
             // DrawTargets
             PlayerManager.instance.DrawTargets(thisSkill);
             PlayerManager.instance.activeCharacter.activeCommand = thisSkill;
+            UIManager.instance.OpenSkillInfo();
         }
     }
 

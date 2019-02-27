@@ -68,8 +68,8 @@ public class BaseCharacter : Actor
     private bool m_hasDoneActOut = false;
     public bool HasDoneActOut { get { return m_hasDoneActOut; } set { m_hasDoneActOut = value; } }
 
-    public List<Quirk> positiveQuirks = new List<Quirk>();
-    public List<Quirk> negativeQuirks = new List<Quirk>();
+    public List<Quirk> positiveQuirks = new List<Quirk>(2);
+    public List<Quirk> negativeQuirks = new List<Quirk>(2);
 
     protected override void Awake()
     {
@@ -288,6 +288,8 @@ public class BaseCharacter : Actor
                 {
                     yield return null;
                 }
+
+                GainQuirk(false);
             }
             else
             {
@@ -299,10 +301,13 @@ public class BaseCharacter : Actor
                 {
                     yield return null;
                 }
+
+                GainQuirk(true);
             }
         }
 
         yield return new WaitForSeconds(0.5f);
+
         PlayerManager.instance.isSuffering = false;
     }
 
@@ -436,5 +441,25 @@ public class BaseCharacter : Actor
             "time", 1.2f,
             "delay", 0.6f
         ));
+    }
+
+    void GainQuirk(bool positive)
+    {
+        if(positive && this.positiveQuirks.Count < 2)
+        {
+            int rand = Random.Range(0, Commander.instance.positiveQuirkPrefabs.Count);
+            var temp = Instantiate(Commander.instance.positiveQuirkPrefabs[rand]);
+            temp.transform.SetParent(this.gameObject.transform);
+            this.positiveQuirks.Add(temp.GetComponent<Quirk>());
+        }
+        else if (!positive && this.negativeQuirks.Count < 2)
+        {
+            int rand = Random.Range(0, Commander.instance.positiveQuirkPrefabs.Count);
+            var temp = Instantiate(Commander.instance.negativeQuirkPrefabs[rand]);
+            temp.transform.SetParent(this.gameObject.transform);
+            this.negativeQuirks.Add(temp.GetComponent<Quirk>());
+        }
+
+        UIManager.instance.CreateEffect("Quirk", this, 0);
     }
 }

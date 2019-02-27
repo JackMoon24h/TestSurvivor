@@ -15,15 +15,10 @@ public class StatusWindow : BaseWindow
     public GameObject[] preferredPositions = new GameObject[4];
     public GameObject[] preferredTargets = new GameObject[4];
 
-    public Text positiveQuirk1;
-    public Text positiveQuirk1Des;
-    public Text positiveQuirk2;
-    public Text positiveQuirk2Des;
-
-    public Text negativeQuirk1;
-    public Text negativeQuirk1Des;
-    public Text negativeQuirk2;
-    public Text negativeQuirk2Des;
+    public Text[] positiveQuirkTitles = new Text[2];
+    public Text[] positiveQuirkDes = new Text[2];
+    public Text[] negativeQuirkTitles = new Text[2];
+    public Text[] negativeQuirkDes = new Text[2];
 
     public override void OpenWindow()
     {
@@ -65,6 +60,58 @@ public class StatusWindow : BaseWindow
         {
             affliction.text = "Affliction";
             afflictionDes.text = "None";
+        }
+
+        switch(target.positiveQuirks.Count)
+        {
+            case 0:
+                for(int i = 0; i < positiveQuirkTitles.Length; i++)
+                {
+                    this.positiveQuirkTitles[i].text = "";
+                    this.positiveQuirkDes[i].text = "";
+                }
+                break;
+            case 1:
+                this.positiveQuirkTitles[0].text = target.positiveQuirks[0].Name;
+                this.positiveQuirkDes[0].text = target.positiveQuirks[0].Description;
+                this.positiveQuirkTitles[1].text = "";
+                this.positiveQuirkDes[1].text = "";
+                break;
+            case 2:
+                for (int i = 0; i < positiveQuirkTitles.Length; i++)
+                {
+                    this.positiveQuirkTitles[i].text = target.positiveQuirks[i].Name;
+                    this.positiveQuirkDes[i].text = target.positiveQuirks[i].Description;
+                }
+                break;
+            default:
+                break;
+        }
+
+        switch (target.negativeQuirks.Count)
+        {
+            case 0:
+                for (int i = 0; i < negativeQuirkTitles.Length; i++)
+                {
+                    this.negativeQuirkTitles[i].text = "";
+                    this.negativeQuirkDes[i].text = "";
+                }
+                break;
+            case 1:
+                this.negativeQuirkTitles[0].text = target.negativeQuirks[0].Name;
+                this.negativeQuirkDes[0].text = target.negativeQuirks[0].Description;
+                this.negativeQuirkTitles[1].text = "";
+                this.negativeQuirkDes[1].text = "";
+                break;
+            case 2:
+                for (int i = 0; i < positiveQuirkTitles.Length; i++)
+                {
+                    this.negativeQuirkTitles[i].text = target.negativeQuirks[i].Name;
+                    this.negativeQuirkDes[i].text = target.negativeQuirks[i].Description;
+                }
+                break;
+            default:
+                break;
         }
 
     }

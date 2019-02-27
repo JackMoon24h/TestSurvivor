@@ -23,7 +23,8 @@ public class Speaker : MonoBehaviour
         "We need to get there as soon as possible....!",
         "Hey, don't forget the reason why we are here..",
         "Be careful...I saw something behind us....",
-        "I miss the old days...before the breakout..."
+        "I miss the old days...before the breakout...",
+        "Undead...How is this possible....??"
     };
 
     private string[] m_virtueState =
@@ -31,7 +32,8 @@ public class Speaker : MonoBehaviour
         "Suffer me now!",
         "Be Strong! We can survive! We have been through worse than this!!",
         "I will kill these zombies one by one... Painfully..!",
-        "....Is that it? Let them all come. I don't fear you."
+        "....Is that it? Let them all come. I don't fear you.",
+        "Life is always ups and downs. Don't stress yourself guys!!"
     };
 
     private string[] m_afflictedState =
@@ -39,7 +41,8 @@ public class Speaker : MonoBehaviour
         "....They are gonna kill us all....it is over....",
         "...Run....We cannot survive this....We need to run..!!",
         "I should have not joined this team....This is all your falut...!!",
-        "HUAAAAA!!! I don't want to die here....HELP.....!!!"
+        "HUAAAAA!!! I don't want to die here....HELP.....!!!",
+        "Why me...why am I here...I don't see any hope...."
     };
 
     void ShowChatBox(bool value)

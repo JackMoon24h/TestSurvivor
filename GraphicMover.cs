@@ -76,6 +76,16 @@ public class GraphicMover : MonoBehaviour
         }
     }
 
+    public void FadeOut()
+    {
+        iTween.MoveTo(gameObject, iTween.Hash(
+            "position", startXform.position,
+            "time", moveTime,
+            "easetype", easeType,
+            "looptype", loopType
+        ));
+    }
+
     public void Move()
     {
         switch (mode)

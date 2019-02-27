@@ -185,6 +185,7 @@ public class TurnStateMachine : MonoBehaviour
                 yield break;
             }
         }
+        UIManager.instance.CloseSkillInfo();
         UIManager.instance.BeginUIShield();
         Commander.instance.turnStateMachine.currentTurnState = TurnState.DoAction;
     }
@@ -267,7 +268,7 @@ public class TurnStateMachine : MonoBehaviour
             UpdateRound();
         }
 
-        UIManager.instance.EndUIShield();
+        //UIManager.instance.EndUIShield();
         currentTurnState = TurnState.SetActiveUnit;
     }
 
