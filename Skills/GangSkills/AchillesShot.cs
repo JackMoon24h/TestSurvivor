@@ -12,6 +12,6 @@ public class AchillesShot : BaseSkill
         targetActor.TakeDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
 
         // 2. SubEffect
-        targetActor.TakeEffect(attacker, false, 0, false, PhysicalEffectType.Move, 2, 3);
+        targetActor.TakeEffect(attacker, false, 0, true, PhysicalEffectType.Bleed, 2, 3);
     }
 }

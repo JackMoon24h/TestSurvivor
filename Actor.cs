@@ -15,8 +15,8 @@ public class Actor : MonoBehaviour
         Nurse,
         Walker,
         Viral,
-        Goon,
-        Volatile
+        Bolter,
+        Goon
     }
     public Job job;
 
@@ -58,7 +58,7 @@ public class Actor : MonoBehaviour
     public bool isTargeted = false;
     public bool isSwapTarget = false;
 
-    public float setEffectDelay = 0.5f;
+    public float setEffectDelay = 0.3f;
 
     // Common Parameters
     protected int m_level;
@@ -222,7 +222,13 @@ public class Actor : MonoBehaviour
         effect.transform.position = this.transform.position + new Vector3(rand - 0.5f, rand + 1f, 0);
         Destroy(effect, 2f);
 
-        float baseDMG = Mathf.Round(dmg / this.m_protection);
+        var baseEffect = Instantiate(Commander.instance.bleedEffects[2]);
+        baseEffect.transform.position = Camera.main.transform.position + new Vector3(0f, 3f, 10f);
+        Destroy(baseEffect, 2f);
+
+        var rangeRoll = Random.Range(0.9f, 1.25f);
+
+        float baseDMG = Mathf.Round(dmg * rangeRoll / this.m_protection);
         int actualDMG = 0;
 
 
@@ -321,7 +327,6 @@ public class Actor : MonoBehaviour
     public void TakeEffect(Actor attacker, bool hasMentalEffect, int mentalDMG, bool hasPhysicalEffect, PhysicalEffectType type, int pow, int dur)
     {
         m_isSubActionOver = false;
-        Debug.Log(m_isSubActionOver);
 
         StartCoroutine(TakeEffectRoutine(attacker, hasMentalEffect, mentalDMG, hasPhysicalEffect, type, pow, dur));
     }
@@ -344,7 +349,7 @@ public class Actor : MonoBehaviour
             Commander.instance.IsMentalActing = Commander.instance.turnStateMachine.IsStillMentalActing();
         }
 
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.1f);
 
         if(!hasPhysicalEffect)
         {
@@ -414,15 +419,20 @@ public class Actor : MonoBehaviour
 
                 break;
             case PhysicalEffectType.Move:
-                var mRoll = Random.Range(0, 1f);
-                if (mRoll <= this.m_moveRes)
+
+                // If this.isActive, then that means this character is casting moving forward skill
+                if(!this.isActive)
                 {
-                    UIManager.instance.CreateEffect("MoveResist", this, 0);
-                    isResisted = true;
-                }
-                else
-                {
-                    isResisted = false;
+                    var mRoll = Random.Range(0, 1f);
+                    if (mRoll <= this.m_moveRes)
+                    {
+                        UIManager.instance.CreateEffect("MoveResist", this, 0);
+                        isResisted = true;
+                    }
+                    else
+                    {
+                        isResisted = false;
+                    }
                 }
 
                 break;
@@ -432,6 +442,7 @@ public class Actor : MonoBehaviour
 
         if(isResisted)
         {
+            SoundManager.Instance.PlaySE(20);
             onCrit = false;
             m_isSubActionOver = true;
             isResisted = false;
@@ -477,17 +488,19 @@ public class Actor : MonoBehaviour
 
     void SetPhysicalEffect(PhysicalEffect effect)
     {
-        physicalEffects.Add(effect);
-        effect.owner = this;
-        effect.gameObject.transform.SetParent(this.gameObject.transform);
-
         switch (effect.physicalEffectType)
         {
             case PhysicalEffectType.Bleed:
                 m_bleedEffects += effect.Amount;
+                physicalEffects.Add(effect);
+                effect.owner = this;
+                effect.gameObject.transform.SetParent(this.gameObject.transform);
                 break;
             case PhysicalEffectType.Infect:
                 m_infectEffects += effect.Amount;
+                physicalEffects.Add(effect);
+                effect.owner = this;
+                effect.gameObject.transform.SetParent(this.gameObject.transform);
                 break;
             case PhysicalEffectType.Stun:
 
@@ -495,10 +508,16 @@ public class Actor : MonoBehaviour
                 if (m_stunEffects == 0)
                 {
                     m_stunEffects++;
+                    physicalEffects.Add(effect);
+                    effect.owner = this;
+                    effect.gameObject.transform.SetParent(this.gameObject.transform);
                 }
                 break;
             case PhysicalEffectType.Buff:
                 m_buffEffects++;
+                physicalEffects.Add(effect);
+                effect.owner = this;
+                effect.gameObject.transform.SetParent(this.gameObject.transform);
                 break;
             default:
                 break;
@@ -590,6 +609,8 @@ public class Actor : MonoBehaviour
         if (dmgSum > 0)
         {
             UIManager.instance.CreateEffect("Damage", this, dmgSum);
+            SoundManager.Instance.PlaySE(8);
+
             DeathCheck();
 
             while(Commander.instance.IsActing)
@@ -611,16 +632,23 @@ public class Actor : MonoBehaviour
         }
 
         var indexList = new List<int>();
-        foreach (var t in physicalEffects)
+
+        for (int i = 0; i < physicalEffects.Count; i++)
         {
-            t.UpdateDuration(indexList);
+            int temp = physicalEffects[i].UpdateDuration();
+            if(temp >= 0)
+            {
+                indexList.Add(temp);
+            }
         }
 
-        foreach(var t in indexList)
+        foreach (var t in indexList)
         {
             Destroy(physicalEffects[t].gameObject);
             physicalEffects.RemoveAt(t);
         }
+
+        Debug.Log("PhysicalEffects Destroyied Completed");
 
         // Random Behavior
 

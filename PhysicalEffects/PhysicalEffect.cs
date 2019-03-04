@@ -55,14 +55,16 @@ public class PhysicalEffect : MonoBehaviour
         m_amount = power;
         m_duration = duration;
         owner = target;
+
+        SoundManager.Instance.PlaySE(8);
     }
 
-    public virtual void UpdateDuration(List<int> indexList)
+    public virtual int UpdateDuration()
     {
         m_duration--;
-        if (m_duration == 0)
+
+        if (m_duration <= 0)
         {
-            indexList.Add(owner.physicalEffects.IndexOf(this));
             switch (this.physicalEffectType)
             {
                 case PhysicalEffectType.Bleed:
@@ -74,7 +76,7 @@ public class PhysicalEffect : MonoBehaviour
                 case PhysicalEffectType.Stun:
                     if (owner.StunEffects > 0)
                     {
-                        owner.StunEffects--;
+                        owner.StunEffects = 0;
                     }
                     break;
                 case PhysicalEffectType.Buff:
@@ -83,6 +85,12 @@ public class PhysicalEffect : MonoBehaviour
                 default:
                     break;
             }
+            Debug.Log(this.Name + " is expired");
+            return owner.physicalEffects.IndexOf(this);
+        }
+        else
+        {
+            return -1;
         }
     }
 }

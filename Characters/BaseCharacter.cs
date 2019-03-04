@@ -130,7 +130,14 @@ public class BaseCharacter : Actor
         // If this character took critical attack from enemy
         if (hasMentalEffect)
         {
-            yield return StartCoroutine(TakeMentalDamage(mentalDMG));
+            if(onCrit)
+            {
+                yield return StartCoroutine(TakeMentalDamage(mentalDMG + onCritMentalDamage));
+            }
+            else
+            {
+                yield return StartCoroutine(TakeMentalDamage(mentalDMG));
+            }
         }
         else if (onCrit)
         {
@@ -192,7 +199,7 @@ public class BaseCharacter : Actor
     public virtual IEnumerator TakeMentalDamage(int mentalDmg)
     {
         m_doingMentalAction = true;
-        Debug.Log("TakeMentalDamage Routine");
+
         int temp = 0;
         if (this.m_isAfflicted)
         {
@@ -210,11 +217,12 @@ public class BaseCharacter : Actor
         var actualDMG = Mathf.Clamp(temp, 0, 100);
         this.m_mental -= actualDMG;
 
-        var randQueue = Random.Range(0.2f, 0.4f);
+        var randQueue = Random.Range(0.1f, 0.5f);
 
         yield return new WaitForSeconds(randQueue);
 
         UIManager.instance.CreateEffect("MentalDamage", this, actualDMG);
+        SoundManager.Instance.PlaySE(9);
 
         yield return new WaitForSeconds(0.1f);
 
@@ -277,6 +285,9 @@ public class BaseCharacter : Actor
         else
         {
             float rand = Random.Range(0, 1f);
+            SoundManager.Instance.PlaySE(12);
+
+            yield return new WaitForSeconds(0.75f);
 
             if (rand > m_virtue)
             {
@@ -313,9 +324,8 @@ public class BaseCharacter : Actor
 
     IEnumerator AfflictRoutine()
     {
-        Debug.Log("Affliction Routine");
         // Tested
-        Commander.instance.narrator.Narrate(this.m_name +"'s Mental is Tested...");
+        Commander.instance.narrator.Narrate("試練 : " + this.m_name +"'s Mental is Tested...");
         Camera.main.GetComponent<CameraController>().Shake(0.2f, 3f, 0.2f);
         while (Commander.instance.narrator.IsNarrating)
         {
@@ -323,6 +333,7 @@ public class BaseCharacter : Actor
         }
         // Camera Red Blur & Act
         this.characterAction.MentalAct("Affliction");
+
 
         // Create BG effect
         var bg = Instantiate(Commander.instance.sufferBackGrounds[0]);
@@ -336,9 +347,10 @@ public class BaseCharacter : Actor
 
         afflictionObj.GetComponent<Affliction>().SetEffects(this);
 
-        Commander.instance.narrator.ShowAfflictionResult(temp.ToString()); ;
+        Commander.instance.narrator.ShowAfflictionResult(temp.ToString());
+        SoundManager.Instance.PlaySE(13);
 
-        while(!this.characterAction.isAfflictionActionOver)
+        while (!this.characterAction.isAfflictionActionOver)
         {
             yield return null;
         }
@@ -350,7 +362,6 @@ public class BaseCharacter : Actor
 
     IEnumerator VirtueRoutine()
     {
-        Debug.Log("Virtue Routine");
         // Tested
         Commander.instance.narrator.Narrate(this.m_name + "'s Mental is Tested...");
         Camera.main.GetComponent<CameraController>().Shake(0.2f, 3f, 0.2f);
@@ -360,6 +371,7 @@ public class BaseCharacter : Actor
         }
 
         this.characterAction.MentalAct("Virtue");
+
 
         // Create BG effect
         var bg = Instantiate(Commander.instance.sufferBackGrounds[1]);
@@ -374,6 +386,7 @@ public class BaseCharacter : Actor
         virtueObj.GetComponent<Virtue>().SetEffects(this);
 
         Commander.instance.narrator.ShowAfflictionResult(temp.ToString());
+        SoundManager.Instance.PlaySE(14);
 
         while (!this.characterAction.isAfflictionActionOver)
         {
@@ -390,6 +403,8 @@ public class BaseCharacter : Actor
         if(m_isAfflicted)
         {
             UIManager.instance.CreateEffect("Refusal", this, heal);
+            SoundManager.Instance.PlaySE(20);
+
             m_hasDoneActOut = true;
             return;
         }
@@ -412,6 +427,8 @@ public class BaseCharacter : Actor
         if (m_isAfflicted)
         {
             UIManager.instance.CreateEffect("Refusal", this, amount);
+            SoundManager.Instance.PlaySE(20);
+
             m_hasDoneActOut = true;
             return;
         }
@@ -422,8 +439,6 @@ public class BaseCharacter : Actor
             m_hasDoneActOut = true;
             return;
         }
-
-        Debug.Log(m_mental + " " + amount + " " + m_mental + amount);
 
         this.m_mental = Mathf.Clamp(m_mental + amount, 0, m_maxMental);
         UIManager.instance.CreateEffect("MentalHeal", this, amount);
@@ -461,5 +476,6 @@ public class BaseCharacter : Actor
         }
 
         UIManager.instance.CreateEffect("Quirk", this, 0);
+        SoundManager.Instance.PlaySE(19);
     }
 }

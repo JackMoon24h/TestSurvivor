@@ -109,7 +109,7 @@ public class TouchInput : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("No Object Found");
+
                 }
             }
         }

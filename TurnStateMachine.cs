@@ -104,13 +104,19 @@ public class TurnStateMachine : MonoBehaviour
 
     IEnumerator StartTurnRoutine()
     {
-        // If it is dead then skip turn
-        while(queue[m_turnCount - 1] == null)
+        if(queue[m_turnCount - 1] == null)
         {
-            yield return new WaitForSeconds(0.5f);
-            GetNextTurn();
-
+            m_isSkipTurn = true;
+            yield break;
         }
+
+        // If it is dead then skip turn
+        //while(queue[m_turnCount - 1] == null)
+        //{
+        //    yield return new WaitForSeconds(0.5f);
+        //    GetNextTurn();
+
+        //}
         Debug.Log("StartTurnRoutine : Turn / Round " + m_turnCount + " / " + m_round);
 
         // Get Active Character from queue
@@ -120,15 +126,17 @@ public class TurnStateMachine : MonoBehaviour
             currentTurn = Turn.ENEMY;
             currentTurnState = TurnState.WaitForCommand;
             var enemy = (BaseEnemy)queue[m_turnCount - 1];
-            enemy.characterAction.ReadyAction();
-            EnemyManager.instance.SetActiveCharacter(enemy);
 
             enemy.OnTurnStart();
-            if(enemy == null || enemy.isDead)
+
+            if (enemy == null || enemy.isDead)
             {
                 m_isSkipTurn = true;
                 yield break;
             }
+
+            enemy.characterAction.ReadyAction();
+            EnemyManager.instance.SetActiveCharacter(enemy);
 
             while (!enemy.IsSubActionOver)
             {
@@ -145,15 +153,21 @@ public class TurnStateMachine : MonoBehaviour
             currentTurn = Turn.PLAYER;
             currentTurnState = TurnState.WaitForCommand;
             var player = (BaseCharacter)queue[m_turnCount - 1];
-            player.characterAction.ReadyAction();
-            PlayerManager.instance.SetActiveCharacter(player);
+
 
             player.OnTurnStart();
+
+            if(m_isSkipTurn)
+            {
+                yield break;
+            }
+
+            player.characterAction.ReadyAction();
+            PlayerManager.instance.SetActiveCharacter(player);
 
             if (player == null || player.isDead)
             {
                 m_isSkipTurn = true;
-                yield break;
             }
 
             while (!player.IsSubActionOver)
@@ -165,8 +179,17 @@ public class TurnStateMachine : MonoBehaviour
             if(PlayerManager.instance.characterList.Count == 1 && UIManager.instance.availableSkNum == 0)
             {
                 m_isSkipTurn = true;
-                yield break;
             }
+        }
+
+        if (m_isSkipTurn)
+        {
+            Commander.instance.narrator.Narrate("Skip Turn!!");
+            while(Commander.instance.narrator.IsNarrating)
+            {
+                yield return null;
+            }
+            yield break;
         }
 
         yield return new WaitForSeconds(0.6f);
@@ -224,12 +247,18 @@ public class TurnStateMachine : MonoBehaviour
             m_hasHandledEffects = HasAllActorsDone();
         }
 
-        yield return new WaitForSeconds(0.5f);
+        if(!m_isSkipTurn)
+        {
+            yield return new WaitForSeconds(0.3f);
+        }
 
         // Mental Suffering
 
         currentTurnState = TurnState.FinishTurn;
-        yield return new WaitForSeconds(0.75f);
+        if(!m_isSkipTurn)
+        {
+            yield return new WaitForSeconds(0.6f);
+        }
 
         // Initialize variables for the next turn
         m_hasHandledEffects = false;

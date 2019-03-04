@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class DeadMansRush : BaseSkill 
 {
-    public int mentalDmgMode = 10;
+    public int mentalDmgMode = 4;
     public bool hasMentalDMG;
 
     public override void Excute(Actor attacker, GameObject target)
@@ -15,6 +15,6 @@ public class DeadMansRush : BaseSkill
         targetActor.TakeDamage(this.dmgMode + EnemyManager.instance.activeCharacter.Damage);
 
         // 2. Sub Effects
-        targetActor.TakeEffect(attacker, true, mentalDmgMode, true, PhysicalEffectType.Infect, 3, 2);
+        targetActor.TakeEffect(attacker, true, mentalDmgMode, true, PhysicalEffectType.Bleed, 2, 2);
     }
 }

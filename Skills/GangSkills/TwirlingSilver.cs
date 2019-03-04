@@ -11,7 +11,7 @@ public class TwirlingSilver : BaseSkill
         // 1. Main Effect with character's basic action
         targetActor.TakeDamage(this.dmgMode + PlayerManager.instance.activeCharacter.Damage);
 
-        targetActor.TakeEffect(attacker, false, 0, true, PhysicalEffectType.Bleed, 3, 2);
+        targetActor.TakeEffect(attacker, false, 0, false, PhysicalEffectType.Bleed, 3, 2);
     }
 
 

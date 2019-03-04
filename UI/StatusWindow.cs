@@ -25,6 +25,7 @@ public class StatusWindow : BaseWindow
         if(CanOpen())
         {
             UpdateCard(PlayerManager.instance.activeCharacter);
+            SoundManager.Instance.PlaySE(0);
             base.OpenWindow();
         }
     }
@@ -53,7 +54,7 @@ public class StatusWindow : BaseWindow
         }
         else if (target.IsVirtuous)
         {
-            affliction.text = target.virtuousEffect.name;
+            affliction.text = target.virtuousEffect.Name;
             afflictionDes.text = target.virtuousEffect.Description;
         }
         else

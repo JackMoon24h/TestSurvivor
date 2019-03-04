@@ -96,11 +96,11 @@ public class BaseSkill : MonoBehaviour
 
             if(targetActor.onDodge)
             {
-                Mathf.Clamp(hitChance + increaseHitChance, 0f, 1f);
+                hitChance = Mathf.Clamp(hitChance + increaseHitChance, 0f, 1f);
             }
-            Debug.Log(hitChance);
+
             float rand = Random.Range(0, 1f);
-            Debug.Log(rand);
+
 
             targetActor.onCrit = false;
             targetActor.onDodge = false;
@@ -132,8 +132,53 @@ public class BaseSkill : MonoBehaviour
                 UIManager.instance.CreateEffect("Dodge", targetActor, 0);
             }
         }
+        else
+        {
+            // Critical Check
+            float critRoll = Random.Range(0f, 1f);
+            var critChance = attacker.Critical + this.critMode;
 
+            if (this.canCrit && critRoll <= critChance)
+            {
+                // Critical!
+                targetActor.onCrit = true;
+                targetActor.characterAction.Act(ActionType.CriticalHit);
+            }
+            else
+            {
+                targetActor.onCrit = false;
+                targetActor.characterAction.Act(this.skillTargetActionType);
+            }
+        }
 
+        GenerateSound(attacker);
+    }
 
+    void GenerateSound(Actor attacker)
+    {
+        if(attacker is BaseCharacter || attacker.gameObject.tag == "Survivor")
+        {
+            switch(skillActionType)
+            {
+                case ActionType.MainAttack:
+                    int rand = Random.Range(5, 7);
+                    SoundManager.Instance.PlaySE(rand);
+                    break;
+                case ActionType.SubAttack:
+                    SoundManager.Instance.PlaySE(17);
+                    break;
+                case ActionType.Buff:
+                    SoundManager.Instance.PlaySE(11);
+                    break;
+                default:
+                    SoundManager.Instance.PlaySE(17);
+                    break;
+            }
+        }
+        else if (attacker is BaseEnemy || attacker.gameObject.tag == "Enemy")
+        {
+            int randE = Random.Range(15, 17);
+            SoundManager.Instance.PlaySE(randE);
+        }
     }
 }

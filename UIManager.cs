@@ -306,7 +306,7 @@ public class UIManager : MonoBehaviour
 
             case "MentalHeal":
                 label = Instantiate(mentalHealPrefab);
-                label.GetComponentInChildren<Text>().text = "Encourage\n" + amount.ToString();
+                label.GetComponentInChildren<Text>().text = "Focus\n" + amount.ToString();
                 break;
 
             case "Refusal":
@@ -329,6 +329,11 @@ public class UIManager : MonoBehaviour
         label.transform.localScale = new Vector3(1f, 1f, 1f);
         var rand = Random.Range(0.95f, 1.25f);
         Vector2 screenPos = Camera.main.WorldToScreenPoint(target.transform.position) + correction * rand;
+
+        if(effect == "MentalHeal" || effect == "Refusal" || effect == "Heal" || effect == "Cure")
+        {
+            screenPos = Camera.main.WorldToScreenPoint(target.characterAction.body.transform.position) + correction * rand;
+        }
         label.transform.position = screenPos;
     }
 }

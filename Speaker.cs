@@ -9,7 +9,8 @@ public class Speaker : MonoBehaviour
     public GameObject chatBox;
     public Text lineText;
     public float typeDelay = 0.03f;
-    public float delay = 1f;
+    public float delay = 1.5f;
+    bool m_isActive;
 
     private void Start()
     {
@@ -29,7 +30,7 @@ public class Speaker : MonoBehaviour
 
     private string[] m_virtueState =
     {
-        "Suffer me now!",
+        "Ha! This is ",
         "Be Strong! We can survive! We have been through worse than this!!",
         "I will kill these zombies one by one... Painfully..!",
         "....Is that it? Let them all come. I don't fear you.",
@@ -45,8 +46,17 @@ public class Speaker : MonoBehaviour
         "Why me...why am I here...I don't see any hope...."
     };
 
+    private void LateUpdate()
+    {
+        if (m_isActive)
+        {
+            chatBox.GetComponent<RectTransform>().localPosition = new Vector3((thisCharacter.Position - 1) * -80f, 110f, 0f);
+        }
+    }
+
     void ShowChatBox(bool value)
     {
+        m_isActive = true;
         lineText.text = null;
         chatBox.SetActive(value);
 
@@ -95,6 +105,7 @@ public class Speaker : MonoBehaviour
         ShowChatBox(false);
         yield return new WaitForSeconds(0.1f);
         Commander.instance.IsSpeaking = false;
+        m_isActive = false;
     }
 
     public void FixedSpeak(string sentence)

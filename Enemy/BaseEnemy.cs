@@ -96,44 +96,75 @@ public class BaseEnemy : Actor
         yield return base.MentalEffectRoutine(attacker, hasMentalEffect, mentalDMG);
 
         // Critical Check
-        bool critHit = false;
-        foreach (var t in EnemyManager.instance.characterList)
-        {
-            if (t.onCrit)
-            {
-                critHit = true;
-                break;
-            }
-        }
-
-        if(critHit)
+        if(this.onCrit)
         {
             var character = (BaseCharacter)attacker;
-            if(!character.DoingMentalAction)
+
+            if (character.IsVirtuous)
             {
-                character.TakeMentalHeal(character.onCritMentalHeal);
+                character.speaker.FixedSpeak("Attack~~~!!!");
+                while (Commander.instance.IsSpeaking)
+                {
+                    yield return null;
+                }
+                foreach (var other in PlayerManager.instance.characterList)
+                {
+                    if(!other.IsAfflicted)
+                    {
+                        other.TakeMentalHeal(4);
+                    }
+                }
+                while (character.DoingMentalAction)
+                {
+                    yield return null;
+                }
             }
+            else
+            {
+                foreach (var another in PlayerManager.instance.characterList)
+                {
+                    if (another != character && another.IsAfflicted)
+                    {
+                        //another.speaker.FixedSpeak("You were just lucky...We are all going to die anyway....");
+                        //while(Commander.instance.IsSpeaking)
+                        //{
+                        //    yield return null;
+                        //}
+                        character.TakeMentalDamage(another.onDodMentalDamage);
+                        break;
+                    }
+                }
+                while (character.DoingMentalAction)
+                {
+                    yield return null;
+                }
+            }
+
             yield break;
         }
 
-        // Dodge Check
+        //Dodge Check
 
-        bool dodged = false;
-        foreach (var t in EnemyManager.instance.characterList)
-        {
-            if(t.onDodge)
-            {
-                dodged = true;
-                break;
-            }
-        }
-
-        if(dodged)
+        if(this.onDodge)
         {
             var character = (BaseCharacter)attacker;
-            if(!character.DoingMentalAction)
+
+            foreach(var another in PlayerManager.instance.characterList)
             {
-                yield return StartCoroutine(character.TakeMentalDamage(character.onDodMentalDamage));
+                if(another != character && !another.IsVirtuous)
+                {
+                    //another.speaker.FixedSpeak("What?! Missed?!...Stupid...!!!");
+                    //while (Commander.instance.IsSpeaking)
+                    //{
+                    //    yield return null;
+                    //}
+                    character.TakeMentalDamage(another.onDodMentalDamage);
+                    break;
+                }
+            }
+            while(character.DoingMentalAction)
+            {
+                yield return null;
             }
         }
 

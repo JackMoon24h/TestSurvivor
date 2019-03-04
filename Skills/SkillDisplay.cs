@@ -95,7 +95,12 @@ public class SkillDisplay : MonoBehaviour
     // Called when the command btn is clickeda
     public void OnClickEvent()
     {
-        if(m_isAvailable && thisCharacter.isActive)
+        if(!Commander.instance.IsBattle)
+        {
+            return;
+        }
+
+        if (m_isAvailable && thisCharacter.isActive)
         {
             // DrawTargets
             PlayerManager.instance.DrawTargets(thisSkill);

@@ -82,7 +82,7 @@ public class CharacterAction : MonoBehaviour
 
                 // Defensive Animation
             case ActionType.SubAttack:
-                StartCoroutine(TargetActionRoutine(actionType.ToString()));
+                StartCoroutine(ActionRoutine(actionType.ToString()));
                 break;
 
             case ActionType.Buff:
@@ -332,7 +332,7 @@ public class CharacterAction : MonoBehaviour
 
     protected virtual IEnumerator ReadyRoutine()
     {
-
+        SoundManager.Instance.PlaySE(3);
         iTween.ScaleTo(body, iTween.Hash(
             "x", 1.2f,
             "y", 1.2f,
@@ -395,6 +395,9 @@ public class CharacterAction : MonoBehaviour
             "time", actStayTime,
             "easetype", easeTypeStay
         ));
+
+        SoundManager.Instance.PlaySE(7);
+
         yield return new WaitForSeconds(actStayTime);
 
         MoveBackToPosition();

@@ -225,7 +225,7 @@ public class PlayerManager : MonoBehaviour
 
     public void DrawTargets(BaseSkill activeSkill)
     {
-
+        SoundManager.Instance.PlaySE(4);
         if(this.swapBtn.isBtnPressed)
         {
             ClearSwapTargets();
@@ -365,6 +365,8 @@ public class PlayerManager : MonoBehaviour
             Commander.instance.turnStateMachine.HasConfirmedCommand = true;
         }
 
+        SoundManager.Instance.PlaySE(10);
+
         UIManager.instance.BeginUIShield();
         // 1. Update character list
         var t = sList[activePos - 1];
@@ -395,6 +397,8 @@ public class PlayerManager : MonoBehaviour
             // Skip Turn
             return;
         }
+
+        SoundManager.Instance.PlaySE(4);
 
         ClearUnfriendlyTargets();
         ClearFriendlyTargets();

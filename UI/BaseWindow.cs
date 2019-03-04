@@ -36,6 +36,7 @@ public class BaseWindow : MonoBehaviour
 
     IEnumerator CloseWindowRoutine()
     {
+        SoundManager.Instance.PlaySE(0);
         yield return new WaitForSeconds(0.25f);
 
         UIManager.instance.EndUIShield();

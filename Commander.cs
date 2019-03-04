@@ -251,6 +251,8 @@ public class Commander : MonoBehaviour
         m_isBattle = true;
         EnableInput(false);
         touchInput.InputEnabled = false;
+
+        SoundManager.Instance.PlaySE(2);
         UIManager.instance.BeginUIShield();
 
         PlayerManager.instance.ClearActiveCharacter();
@@ -301,7 +303,9 @@ public class Commander : MonoBehaviour
         FinishBattle();
 
         yield return new WaitForSeconds(2f);
-        if(PlayerManager.instance.activeCharacter)
+
+
+        if (PlayerManager.instance.activeCharacter)
         {
             UIManager.instance.rewardWindow.GetComponent<RewardWindow>().OpenWindow();
         }
@@ -310,6 +314,8 @@ public class Commander : MonoBehaviour
         {
             battleOverEvent.Invoke();
         }
+        PlayerManager.instance.SetActiveCharacterAtPos(1);
+        PlayerManager.instance.activeCharacter.speaker.FixedSpeak("Full of zombies....be careful. Let's keep going...!");
     }
 
     public void LoseLevel()
@@ -344,10 +350,8 @@ public class Commander : MonoBehaviour
         foreach(var t in UIManager.instance.skillDisplays)
         {
             t.IsAvailable = true;
-            t.btn.interactable = true;
         }
-
-        PlayerManager.instance.SetActiveCharacterAtPos(1);
+        Commander.instance.turnStateMachine.queue.Clear();
     }
 
     // Check if player has won the battle
@@ -383,6 +387,7 @@ public class Commander : MonoBehaviour
     {
         m_hasLevelStarted = true;
         UIManager.instance.UpdateUIPanel(PlayerManager.instance.activeCharacter);
+        SoundManager.Instance.PlaySE(1);
     }
 
     // Restart te current level

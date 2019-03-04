@@ -26,6 +26,10 @@ public class MovePosition : MonoBehaviour
         }
 
         // DrawTargets
+        if(PlayerManager.instance.characterList.Count <= 1)
+        {
+            return;
+        }
         PlayerManager.instance.DrawSwapPositions();
         isBtnPressed = true;
     }
